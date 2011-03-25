@@ -10,21 +10,25 @@
         <input type="radio" name = show_admin value="False" /> User
         <input type="submit" value = "Submit" /> 
     </form> 
-
-    {% if user_list %}
-    <table>
-        <tr>
-            <th>Full Name </th>
-            <th>Username </th>
-        </tr>   
-        {% for user in user_list %} 
-        <tr>
-            <td> {{ user.name }} </td>
-            <td> {{ user.username }} </td>
-        </tr>
-        {% endfor %}
-
-    </table>
-    {% endif %}
+        {% if user_list %}
+        <table>
+            <tr>
+                <th>Full Name </th>
+                <th>Username </th>
+                <th> </th>
+            </tr>   
+            <form method="post" action="/deleteuser">
+            {% for user in user_list %} 
+            <tr>
+                <td> {{ user.name }} </td> 
+                <td> {{ user.username }} </td> 
+                <td> <input type="checkbox" name="key_to_delete" value= {{ user.username }} /> </td>
+            </tr>
+            {% endfor %}
+        </table>
+        </br>
+        <input type="submit" value = "Delete" />
+        {% endif %}
+    </form>
 
 {% endblock %}

@@ -182,6 +182,31 @@ class ShowuserHandler(webapp.RequestHandler):
             doRender(self, 'showuser.html', {'user_list' : user } )
             return
 
+class DeleteuserHandler(webapp.RequestHandler):
+    def post(self):
+        self.session = Session()
+        pkey = self.session.get('userkey')
+        current_user = db.get(pkey)
+        
+        if current_user.admin == "False":
+            doRender(self, 'main.html', {'msg' : 'Require admin previlege!'})
+            return
+
+        delete_list = self.request.get('key_to_delete')
+        hello = delete_list[1]
+        doRender(self, 'test.html', {'msg' : hello})
+        return
+        if len(delete_list) == 0:
+            return
+
+        for item in delete_list:
+            que = db.Query(User).filter('username =', item)
+            result = que.fetch(limit = 1)
+            result[0].delete()
+
+        doRender(self, 'showuser.html', {})
+
+        
 
 def main():
     application = webapp.WSGIApplication([
@@ -190,6 +215,7 @@ def main():
         ('/register', RegisterHandler),
         ('/main', MainHandler), 
         ('/showuser', ShowuserHandler),
+        ('/deleteuser', DeleteuserHandler),
         ('/.*', IndexHandler)],
         debug=True)
     wsgiref.handlers.CGIHandler().run(application)
