@@ -1,0 +1,30 @@
+{% extends "inbase.html" %}
+{% block bodycontent %}
+    <h2>Show User</h2>
+    <p>
+    You are in the system now, Show user
+    </p> 
+    <form method="post" action="/showuser">
+        Show:
+        <input type="radio" name = show_admin value="True" /> Admin 
+        <input type="radio" name = show_admin value="False" /> User
+        <input type="submit" value = "Submit" /> 
+    </form> 
+
+    {% if user_list %}
+    <table>
+        <tr>
+            <th>Full Name </th>
+            <th>Username </th>
+        </tr>   
+        {% for user in user_list %} 
+        <tr>
+            <td> {{ user.name }} </td>
+            <td> {{ user.username }} </td>
+        </tr>
+        {% endfor %}
+
+    </table>
+    {% endif %}
+
+{% endblock %}

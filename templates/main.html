@@ -1,0 +1,31 @@
+{% extends "inbase.html" %}
+{% block bodycontent %}
+
+    <h2> Welcome {{username}}.  {% if msg %} {{msg}} {% endif %} </h2>
+    <p>
+    You are in the system now
+    </p> 
+    <table>
+        <tr>
+            <th> </th>
+            <th> 8:30am-9:45am</th>
+            <th> 10:00am-11:15am</th>
+            <th> 11:30am-12:40pm</th>
+            <th> 1:50pm-3:00pm</th>
+            <th> 3:15pm-4:30pm</th>
+            <th> 5:00pm-6:10pm</th>
+            <th> 6:30pm-9:10pm</th>
+        </tr>     
+        <tr>
+            <td> SB 112j </td>
+            <td> 2 </td>
+            <td> 3 </td>
+            <td> 4 </td>
+            <td> 5 </td>
+            <td> 6 </td>
+            <td> 7 </td>
+            <td> 8 </td>
+        </tr>
+    </table>
+ 
+{% endblock %}

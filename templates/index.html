@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block bodycontent %}
+    <h2> Welcome to IITV Scheduler </h2>
+    {% if msg %}
+        <p> {{msg}} </p>
+    {% endif %} 
+    <p>
+    This application will help to schedule TDs. Also it will
+    disply all the shift status. Feed back is needed.
+    </p>  
+{% endblock %}

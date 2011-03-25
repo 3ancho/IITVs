@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block bodycontent %}
+      <h1>Creat a new account</h1>
+      <p>
+      Please enter your information below:
+      </p>
+      
+      <form method="post" action="/register">
+          <table>
+              <tr>
+                  <td> Full Name:</td> <td><input type="text" name="name"/></td>
+              </tr>
+              <tr>
+                  <td>Username:</td> <td><input type="text" name="username"/></td>
+              </tr>
+              <tr> 
+                  <td>Password:</td> <td><input type="password" name="password"/></td>
+              </tr> 
+          </table>
+          <input type="submit" value="Create"/> 
+          <input type="submit" value="Cancel" 
+              onclick="window.location='/'; return false;"/>
+      </form>
+      </p>
+      {% if error %}
+       <p>
+       {{ error }}
+       </p>
+      {% endif %}
+{% endblock %}

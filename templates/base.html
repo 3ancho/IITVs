@@ -1,0 +1,28 @@
+<html xmlns = "http://www.w3.org/1999/xtml">
+    <head>
+        <title> IITV Scheduler </title>
+        <link href = "/static/style.css" rel = "stylesheet" type = "text/css" />
+    </head>
+    <body>
+        <div id = "header">
+            <h1><a href = "index.html">IITV Scheduler</a></h1>
+            <ul>
+                <li><a href = "loginscreen.html"
+                    {% ifequal path '/loginscreen.html' %}
+                        class = "selected"
+                    {% endifequal %} 
+                    >Login</a></li>
+                <li><a href = "register.html"
+                    {% ifequal path '/register.html' %}
+                        class = "selected"
+                    {% endifequal %} 
+                    >Register</a></li>
+            </ul>
+        </div>
+        <div id = "bodycontent">
+        {% block bodycontent %}
+              Replace This, If you see it, something's wrong
+        {% endblock %} 
+        </div>
+    </body>
+</html>
