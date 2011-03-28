@@ -192,9 +192,9 @@ class DeleteuserHandler(webapp.RequestHandler):
             doRender(self, 'main.html', {'msg' : 'Require admin previlege!'})
             return
 
-        delete_list = self.request.get('key_to_delete')
-        hello = delete_list[1]
-        doRender(self, 'test.html', {'msg' : hello})
+        first = self.request.get('key_to_delete')
+        second = self.request.get('key_to_delete')
+        doRender(self, 'test.html', {'msg' : first, 'msg2': second})
         return
         if len(delete_list) == 0:
             return
