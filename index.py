@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-# Ruoran Wang IITS
-
+# Ruoran Wang IITVs
 import os
 import logging
 import wsgiref.handlers
@@ -18,13 +17,27 @@ class User(db.Model):
     created = db.DateTimeProperty(auto_now=True)
     #admin = db.BooleanProperty()
     admin = db.StringProperty()
-  
+
+class Location(db.Model):
+    rname = db.StringProperty()
+    camera = db.StringProperty()
+    size = db.StringProperty()
+
+class Course(db.Model):
+    cname = db.StringProperty() # course name (major)
+    cnumber = db.IntegerProperty() # course number 
+    loc = db.ReferenceProperty(Location)
+    #csection = db.IntegerProperty() # course section number
+    #lecturer = db.StringProperty() # lecturer name
+    #start = db.TimeProperty()
+    #end = db.TimeProperty()
+    
+
 # A Model for a ChatMessage
 class ChatMessage(db.Model):
     user = db.ReferenceProperty()
     text = db.StringProperty()
     created = db.DateTimeProperty(auto_now=True)
-
 
 def doRender(handler, tname = 'index.html', values = { }):
     if tname == '/' or tname == '' or tname == None:
@@ -79,13 +92,12 @@ class RegisterHandler(webapp.RequestHandler):
                     'register.html',
                     {'error' : 'Username already exists'} )
             return
-
         #if success, create new user
         newuser = User(name = n, username = un, password = pw, admin = "False")
         pkey = newuser.put()
         self.session['username'] = un 
         self.session['userkey'] = pkey
-        doRender(self, 'register.html', 
+        doRender(self, 'register.html', \
             {'error' : 'Register Success! Welcome, ' + un} )
       
 class LoginHandler(webapp.RequestHandler):
@@ -133,7 +145,6 @@ class LogoutHandler(webapp.RequestHandler):
         self.session.delete_item('userkey')
         doRender(self, 'index.html', {'msg' : un + ' logout successful.'} ) 
 
-
 class IndexHandler(webapp.RequestHandler):
     def get(self):
         if doRender(self,self.request.path) :
@@ -150,13 +161,13 @@ class MainHandler(webapp.RequestHandler):
     def post(self):
         doRender(self, 'test.html')
 
-class ShowuserHandler(webapp.RequestHandler):
+class ShowUserHandler(webapp.RequestHandler):
     def get(self):
         self.session = Session()
         pkey = self.session.get('userkey')
         current_user = db.get(pkey)
         if current_user.admin == "True":
-            doRender(self, 'showuser.html', { })
+            doRender(self, 'show_user.html', { })
         else:
             doRender(self, 'main.html', {'msg' : 'Require admin previlege!'})
 
@@ -174,15 +185,15 @@ class ShowuserHandler(webapp.RequestHandler):
         if self.request.get('show_admin') == 'True': # if this will show admin
             admin = que.filter('admin =', 'True')
             admin = admin.fetch(limit = 100) 
-            doRender(self, 'showuser.html', {'user_list' : admin } )
+            doRender(self, 'show_user.html', {'user_list' : admin } )
             return
         else:
             user = que.filter('admin =', 'False')
             user = user.fetch(limit = 500)
-            doRender(self, 'showuser.html', {'user_list' : user } )
+            doRender(self, 'show_user.html', {'user_list' : user } )
             return
 
-class DeleteuserHandler(webapp.RequestHandler):
+class DeleteUserHandler(webapp.RequestHandler):
     def post(self):
         self.session = Session()
         pkey = self.session.get('userkey')
@@ -198,6 +209,7 @@ class DeleteuserHandler(webapp.RequestHandler):
         return
         '''
         if len(delete_list) == 0:
+            doRender(self, 'show_user.html', {})
             return
 
         for item in delete_list:
@@ -205,8 +217,54 @@ class DeleteuserHandler(webapp.RequestHandler):
             result = que.fetch(limit = 1)
             result[0].delete()
 
-        doRender(self, 'showuser.html', {})
+        doRender(self, 'show_user.html', {})
+'''
+class ShowSettingHandler(webapp.RequestHandler):
+    def get(self):
+        que = db.Query(Location)
+        location_list = que.fetch(limit = 5000)
+        course_list = []
+       
+        time_list = [0,1,2,3,4,5,6]
+        for location in location_list:
+            t_key = location.key()
+            
+            que_course = db.Query(Course).filter('loc =', t_key)
+            row_course_list = que_course.fetch(limit = 60)
+            course_list.append(row_list_course)
+            
 
+
+        doRender(self, 'setting.html', {'location_list' : location_list, \
+                'course_list' : course_list})
+        # course_list needed: March 29
+
+''' # old working on March 29
+class ShowSettingHandler(webapp.RequestHandler):
+    def get(self):
+        que = db.Query(Location)
+        location_list = que.fetch(limit = 5000)
+        doRender(self, 'setting.html', {'location_list' : location_list}) 
+
+
+class AddLocationHandler(webapp.RequestHandler):
+    
+    def post(self):
+        self.session = Session()
+        pkey = self.session.get('userkey')
+        current_user = db.get(pkey)
+
+        t_rname = self.request.get('name')
+        t_camera = self.request.get('camera')
+        t_size = self.request.get('size')
+
+        new_location = Location(rname = t_rname, camera = t_camera, size = t_size)
+        new_location.put()
+
+        que = db.Query(Location)
+        location_list = que.fetch(limit = 5000)
+        doRender(self, 'setting.html', {'location_list' : location_list}) 
+        # course_list needed: March 29
 
 def main():
     application = webapp.WSGIApplication([
@@ -214,8 +272,10 @@ def main():
         ('/logout', LogoutHandler),
         ('/register', RegisterHandler),
         ('/main', MainHandler), 
-        ('/showuser', ShowuserHandler),
-        ('/deleteuser', DeleteuserHandler),
+        ('/show_user', ShowUserHandler),
+        ('/delete_user', DeleteUserHandler),
+        ('/show_setting', ShowSettingHandler),
+        ('/add_location', AddLocationHandler),
         ('/.*', IndexHandler)],
         debug=True)
     wsgiref.handlers.CGIHandler().run(application)

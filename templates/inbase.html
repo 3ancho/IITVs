@@ -11,17 +11,17 @@
         <div id = "header">
             <h1><a href = "main.html">Main Function Page</a></h1>
             <ul>
-                <li><a href = "showuser.html"
-                    {% ifequal path "/showuser.html" %}
+                <li><a href = "show_user.html"
+                    {% ifequal path "/show_user.html" %}
                         class = "selected"
                     {% endifequal %} 
                     >Show User</a></li>
 
-                <li><a href = "function1.html"
-                    {% ifequal path "/function1.html" %}
+                <li><a href = "/show_setting"
+                    {% ifequal path "/show_setting" %}
                         class = "selected"
                     {% endifequal %} 
-                    >Function 1</a></li>
+                    >Settings</a></li>
                 <li><a href = "function2.html"
                     {% ifequal path "/function2.html" %}
                         class = "selected"

@@ -8,7 +8,7 @@
       <form method="post" action="/register">
           <table>
               <tr>
-                  <td> Full Name:</td> <td><input type="text" name="name"/></td>
+                  <td>Full Name:</td> <td><input type="text" name="name"/></td>
               </tr>
               <tr>
                   <td>Username:</td> <td><input type="text" name="username"/></td>
@@ -21,7 +21,6 @@
           <input type="submit" value="Cancel" 
               onclick="window.location='/'; return false;"/>
       </form>
-      </p>
       {% if error %}
        <p>
        {{ error }}
