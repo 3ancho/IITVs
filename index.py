@@ -192,10 +192,11 @@ class DeleteuserHandler(webapp.RequestHandler):
             doRender(self, 'main.html', {'msg' : 'Require admin previlege!'})
             return
 
-        first = self.request.get('key_to_delete')
-        second = self.request.get('key_to_delete')
-        doRender(self, 'test.html', {'msg' : first, 'msg2': second})
+        delete_list = self.request.get_all('key_to_delete')
+        ''' # Testing!
+        doRender(self, 'test.html', {'msg' : first[0], 'msg2': str(len(first))})
         return
+        '''
         if len(delete_list) == 0:
             return
 
@@ -206,7 +207,6 @@ class DeleteuserHandler(webapp.RequestHandler):
 
         doRender(self, 'showuser.html', {})
 
-        
 
 def main():
     application = webapp.WSGIApplication([

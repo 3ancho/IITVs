@@ -1,5 +1,18 @@
 {% extends "inbase.html" %}
 {% block bodycontent %}
+
+<script type="text/javascript">
+    function gen_id(){
+        if (typeof gen_id.counter = 'undefined' ){
+            gen_id.counter = 0;
+        }
+        new_id = gen_id.counter++;
+        this.id=new_id
+    } 
+
+    
+</script>
+    
     <h2>Show User</h2>
     <p>
     You are in the system now, Show user
@@ -30,5 +43,8 @@
         <input type="submit" value = "Delete" />
         {% endif %}
     </form>
+   {% if msg %}
+        <p> {{msg}} </p>
+   {% endif %}  
 
 {% endblock %}
