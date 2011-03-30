@@ -1,0 +1,24 @@
+{% extends "inbase.html" %}
+{% block bodycontent %}
+      <h1>Adding a location</h1>
+      <p>
+      Please enter Classroom information. 
+      </p>
+      
+      <form method="post" action="/add_location">
+          <table>
+              <tr>
+                  <td>Room Name:</td> <td><input type="text" name="name"/></td>
+              </tr>
+              <tr>
+                  <td>Camera:</td> <td><input type="text" name="camera"/></td>
+              </tr>
+              <tr> 
+                  <td>Size:</td> <td><input type="text" name="size"/></td>
+              </tr> 
+          </table>
+          <input type="submit" value="Add"/> 
+          <input type="submit" value="Cancel" /
+              onclick="window.location='/'; return false;"/>
+      </form>
+{% endblock %}
