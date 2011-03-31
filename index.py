@@ -27,6 +27,15 @@ class Course(db.Model):
     cname = db.StringProperty() # course name (major)
     cnumber = db.IntegerProperty() # course number 
     loc = db.ReferenceProperty(Location)
+    time = db.IntegerProperty() # time = [0 to 6]
+    ''' 8:30am-9:45am 	    0
+        10:00am-11:15am     1
+        11:30am-12:40pm 	2
+        1:50pm-3:00pm 	    3
+        3:15pm-4:30pm 	    4
+        5:00pm-6:10pm 	    5
+        6:30pm-9:10pm       6
+    '''
     #csection = db.IntegerProperty() # course section number
     #lecturer = db.StringProperty() # lecturer name
     #start = db.TimeProperty()
@@ -218,26 +227,37 @@ class DeleteUserHandler(webapp.RequestHandler):
             result[0].delete()
 
         doRender(self, 'show_user.html', {})
-'''
+
 class ShowSettingHandler(webapp.RequestHandler):
     def get(self):
         que = db.Query(Location)
-        location_list = que.fetch(limit = 5000)
-        course_list = []
-       
+        location_list = que.fetch(limit = 5000) # number of rows
+
+        course_list = [] # list of row_list
+        row_list = [] # this may deleted, as appears latter
         time_list = [0,1,2,3,4,5,6]
+
         for location in location_list:
+            row_list = []
+            row_list.append(location) # first colum is location
             t_key = location.key()
-            
-            que_course = db.Query(Course).filter('loc =', t_key)
-            row_course_list = que_course.fetch(limit = 60)
-            course_list.append(row_list_course)
-            
+            que_row = db.Query(Course).filter('loc =', t_key)
+            test = que_row.fetch(limit = 2) 
+            if len(test) == 0:
+                for i in time_list:
+                    row_list.append("add") # key point!!!!
+            else:
+                for i in time_list:
+                    que_cell = que_row.filter('time =', i)  
+                    result = que_course.fetch(limit = 2) # should be: limit = 1
+                    if len(result) != 0:
+                        course_list.append(result[0])
+                    else:
+                        course_list.append("add") # key point!!!!
+                                            # location (obj), i (int)
+            course_list.append(row_list)
 
-
-        doRender(self, 'setting.html', {'location_list' : location_list, \
-                'course_list' : course_list})
-        # course_list needed: March 29
+        doRender(self, 'setting.html', {'course_list' : course_list})
 
 ''' # old working on March 29
 class ShowSettingHandler(webapp.RequestHandler):
@@ -245,7 +265,7 @@ class ShowSettingHandler(webapp.RequestHandler):
         que = db.Query(Location)
         location_list = que.fetch(limit = 5000)
         doRender(self, 'setting.html', {'location_list' : location_list}) 
-
+'''
 
 class AddLocationHandler(webapp.RequestHandler):
     

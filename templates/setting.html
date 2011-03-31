@@ -19,19 +19,18 @@
         
      
           
-        <form method="post" action="/add_location">
-        {% for location in location_list %} 
+        {% for row_list in course_list %} 
         <tr>
-            <td> {{ location.rname }} </td> 
-            
-            {% for course in course_list %} 
-                <td> {{course.name}} </td>
+            {% for cell in row_list %}
+                {% if cell.rname %}
+                    <td>{{ cell.rname }}</td>
+                {% else %}
+                    <td>{{ cell }}</td>
+                {% endif %} 
             {% endfor %}
-
         </tr>
         {% endfor %}
-       
-        
+
         <tr>
             <td> e.g. </td>
             <td> 0 </td>

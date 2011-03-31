@@ -1,3 +1,4 @@
 ## IITVs ignores
 *.swp
 *.py.swp
+*.index.py.swp
