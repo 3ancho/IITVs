@@ -1,8 +1,8 @@
 {% extends "inbase.html" %}
 {% block bodycontent %}
-    <h2> Set Up Class Schedule </h2>
+    <h2> Set Up and Manage Courses and Rooms </h2>
     <p>
-    You are in function 1 
+        Manage Course and Room. 
     </p>  
     <h3> Real Table </h3>
     <table>
@@ -24,23 +24,20 @@
             {% for cell in row_list %}
                 {% if cell.rname %}
                     <td>{{ cell.rname }}</td>
+                {% else %} {% if cell.cname %}
+                    <td>{{ cell.cname }}</td>
                 {% else %}
-                    <td>{{ cell }}</td>
-                {% endif %} 
+                    <td> 
+                        <form method="post" action="/pre_course">
+                            <input type="hidden" name="row" value="{{cell.x}}" /> 
+                            <input type="hidden" name="column" value="{{cell.y}}" /> 
+                            <input type="submit" value="add" />
+                        </form> 
+                    </td>
+                {% endif %} {% endif %} 
             {% endfor %}
         </tr>
         {% endfor %}
-
-        <tr>
-            <td> e.g. </td>
-            <td> 0 </td>
-            <td> 1 </td>
-            <td> 2 </td>
-            <td> 3 </td>
-            <td> 4 </td>
-            <td> 5 </td>
-            <td> 6 </td>
-        </tr>
 
     </table>
     <a href="add_location.html">Add Classroom</a> 

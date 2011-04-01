@@ -1,0 +1,31 @@
+{% extends "inbase.html" %}
+{% block bodycontent %}
+      <h1>Add a new course</h1>
+      <p>
+      Please enter Course information below:
+      </p>
+      
+      <form method="post" action="/add_course">
+          <table>
+              <tr>
+                  <td>Course Name:</td> <td><input type="text" name="cname"/></td>
+              </tr>
+              <tr>
+                  <td>Course Number:</td> <td><input type="text" name="cnumber"/></td>
+              </tr>
+              <tr> 
+                  <td>Time Duraion:</td> <td><input type="text" name="time"/></td>
+              </tr> 
+          </table>
+          
+          <input type="hidden" name="location" value="{{loc}}" />
+          <input type="hidden" name="time_index" value="{{t_index}}" />
+          <input type="submit" value="Create"/> 
+          <input type="reset" value="Clear"/>
+      </form>
+      {% if error %}
+       <p>
+       {{ error }}
+       </p>
+      {% endif %}
+{% endblock %}

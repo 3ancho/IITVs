@@ -41,6 +41,9 @@ class Course(db.Model):
     #start = db.TimeProperty()
     #end = db.TimeProperty()
     
+class XY(db.Model):
+    x = db.StringProperty()
+    y = db.IntegerProperty()
 
 # A Model for a ChatMessage
 class ChatMessage(db.Model):
@@ -234,38 +237,35 @@ class ShowSettingHandler(webapp.RequestHandler):
         location_list = que.fetch(limit = 5000) # number of rows
 
         course_list = [] # list of row_list
-        row_list = [] # this may deleted, as appears latter
+        row_list = [] # may deleted
         time_list = [0,1,2,3,4,5,6]
 
         for location in location_list:
             row_list = []
-            row_list.append(location) # first colum is location
+            row_list.append(location) #row_list[0]: operand Location
+
             t_key = location.key()
-            que_row = db.Query(Course).filter('loc =', t_key)
-            test = que_row.fetch(limit = 2) 
-            if len(test) == 0:
-                for i in time_list:
-                    row_list.append("add") # key point!!!!
+            que_course = db.Query(Course).filter('loc =', t_key)
+
+            test = que_course.fetch(limit = 2) 
+            if len(test) == 0: # no course in this location
+                for item in time_list:
+                    object_xy = XY(x = location.rname, y = item)
+                    row_list.append( object_xy ) #cell, operand: Object XY()
             else:
-                for i in time_list:
-                    que_cell = que_row.filter('time =', i)  
-                    result = que_course.fetch(limit = 2) # should be: limit = 1
+
+                for item in time_list:
+                    que_cell = db.Query(Course).filter('loc =', t_key).filter('time =', item)  
+                    result = que_cell.fetch(limit = 1) # should be: limit = 1
                     if len(result) != 0:
-                        course_list.append(result[0])
+                        row_list.append(result[0]) #cell, operand:Course
                     else:
-                        course_list.append("add") # key point!!!!
-                                            # location (obj), i (int)
+                        object_xy = XY(x = location.rname, y = item)
+                        row_list.append( object_xy ) #cell, oerand: Object XY() 
+                                            
             course_list.append(row_list)
-
+        
         doRender(self, 'setting.html', {'course_list' : course_list})
-
-''' # old working on March 29
-class ShowSettingHandler(webapp.RequestHandler):
-    def get(self):
-        que = db.Query(Location)
-        location_list = que.fetch(limit = 5000)
-        doRender(self, 'setting.html', {'location_list' : location_list}) 
-'''
 
 class AddLocationHandler(webapp.RequestHandler):
     
@@ -286,6 +286,44 @@ class AddLocationHandler(webapp.RequestHandler):
         doRender(self, 'setting.html', {'location_list' : location_list}) 
         # course_list needed: March 29
 
+class PreCourseHandler(webapp.RequestHandler):
+    def post(self):
+        location_name = self.request.get('row')
+        time_index = int(self.request.get('column'))
+        #que = db.Query(Location).filter('rname =', location_name) 
+        #t_location = que.fetch(limit = 1)[0]
+        doRender(self, 'add_course.html', \
+                {'loc' : location_name, 't_index' : time_index} )
+
+
+
+class AddCourseHandler(webapp.RequestHandler):
+    def post(self):
+        location_name = self.request.get('location')
+        time_index = int(self.request.get('time_index'))
+        t_cname = self.request.get('cname')
+        t_cnumber = int(self.request.get('cnumber'))
+        #t_time = self.request.get('time')  # March 31 need improve!
+        
+        que = db.Query(Location).filter('rname =', location_name) 
+        location_key = que.fetch(limit = 1)[0].key()
+
+        new_course = Course(loc = location_key, time = time_index, \
+                cname = t_cname, cnumber = t_cnumber)
+        new_course.put()
+        
+        que_loc = db.Query(Location)
+        location_list = que_loc.fetch(limit = 500)
+
+        que_course = db.Query(Course)
+        course_list = que_course.fetch(limit = 500)
+
+        doRender(self, 'setting.html', { } ) 
+
+
+
+
+
 def main():
     application = webapp.WSGIApplication([
         ('/login', LoginHandler),
@@ -296,6 +334,8 @@ def main():
         ('/delete_user', DeleteUserHandler),
         ('/show_setting', ShowSettingHandler),
         ('/add_location', AddLocationHandler),
+        ('/pre_course', PreCourseHandler),
+        ('/add_course', AddCourseHandler),
         ('/.*', IndexHandler)],
         debug=True)
     wsgiref.handlers.CGIHandler().run(application)
