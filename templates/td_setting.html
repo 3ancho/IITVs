@@ -1,10 +1,10 @@
 {% extends "inbase.html" %}
 {% block bodycontent %}
-    <h2> Set Up and Manage Courses and Rooms </h2>
+
+    <h2> Welcome {{username}}.  {% if msg %} {{msg}} {% endif %} </h2>
     <p>
-        Manage Course and Room. 
-    </p>  
-    <h3> Real Table </h3>
+    You are in the system now
+    </p> 
     <table>
         <tr>
             <th> </th>
@@ -16,8 +16,6 @@
             <th> 5:00pm-6:10pm</th>
             <th> 6:30pm-9:10pm</th>
         </tr> 
-        
-     
           
         {% for row_list in course_list %} 
         <tr>
@@ -25,25 +23,21 @@
                 {% if cell.rname %}
                     <td>{{ cell.rname }}</td>
                 {% else %} {% if cell.cname %}
-                    <td>{{ cell.cname }}</td>
+                    <td>
+                        <form method="post" action="/pre_course">
+                        <input type="hidden" name="row" value="{{cell.x}}" /> 
+                        <input type="hidden" name="column" value="{{cell.y}}" /> 
+                        <input type="submit" value="{{cell.cname}}" />
+                        </form> 
+                    </td>
                 {% else %}
                     <td> 
-                        <form method="post" action="/pre_course">
-                            <input type="hidden" name="row" value="{{cell.x}}" /> 
-                            <input type="hidden" name="column" value="{{cell.y}}" /> 
-                            <input type="submit" value="add" />
-                        </form> 
+                        
                     </td>
                 {% endif %} {% endif %} 
             {% endfor %}
         </tr>
         {% endfor %}
     </table>
-
-    <a href="add_location.html">Add Classroom</a> 
-    <!-- add_location.html, means show add_location.html --> 
-    </br>   
-    <a href="/show_setting">Display / Refresh</a> 
-    <!-- /show_setting (GET), means show setting.html -->    
 
 {% endblock %}

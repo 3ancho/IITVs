@@ -51,6 +51,17 @@ class ChatMessage(db.Model):
     text = db.StringProperty()
     created = db.DateTimeProperty(auto_now=True)
 
+
+
+def noUser(handler):
+   handler.session = Session()
+   pkey = handler.session.get('userkey')
+   if pkey == None:
+       doRender(handler, 'index.html', {})
+       return True 
+   else:
+       return False 
+
 def doRender(handler, tname = 'index.html', values = { }):
     if tname == '/' or tname == '' or tname == None:
         tname = 'index.html'
@@ -151,11 +162,11 @@ class LoginHandler(webapp.RequestHandler):
 
 class LogoutHandler(webapp.RequestHandler):
     def get(self):
-        self.session = Session()
-        un = self.session.get('username')
+        if noUser(self):
+            return
         self.session.delete_item('username')
         self.session.delete_item('userkey')
-        doRender(self, 'index.html', {'msg' : un + ' logout successful.'} ) 
+        doRender(self, 'index.html', {'msg' : ' Logout successful.'} ) 
 
 class IndexHandler(webapp.RequestHandler):
     def get(self):
@@ -165,18 +176,47 @@ class IndexHandler(webapp.RequestHandler):
 
 class MainHandler(webapp.RequestHandler):
     def get(self):
-        self.session = Session()
-        if self.session.get('username') == None:
-            self.redirect('/')
-        doRender(self, 'main.html')
-     
-    def post(self):
-        doRender(self, 'test.html')
+        if noUser(self):
+            return
+        que = db.Query(Location)
+        location_list = que.fetch(limit = 5000) # number of rows
+
+        course_list = [] # list of row_list
+        row_list = [] # may deleted
+        time_list = [0,1,2,3,4,5,6]
+
+        for location in location_list:
+            row_list = []
+            row_list.append(location) #row_list[0]: operand Location
+
+            t_key = location.key()
+            que_course = db.Query(Course).filter('loc =', t_key)
+
+            test = que_course.fetch(limit = 2) 
+            if len(test) == 0: # no course in this location
+                for item in time_list:
+                    object_xy = XY(x = location.rname, y = item)
+                    row_list.append( object_xy ) #cell, operand: Object XY()
+            else:
+
+                for item in time_list:
+                    que_cell = db.Query(Course).filter('loc =', t_key).filter('time =', item)  
+                    result = que_cell.fetch(limit = 1) # should be: limit = 1
+                    if len(result) != 0:
+                        row_list.append(result[0]) #cell, operand:Course
+                    else:
+                        object_xy = XY(x = location.rname, y = item)
+                        row_list.append( object_xy ) #cell, oerand: Object XY() 
+                                            
+            course_list.append(row_list)
+        
+        doRender(self, 'main.html', {'course_list' : course_list})
+
 
 class ShowUserHandler(webapp.RequestHandler):
     def get(self):
-        self.session = Session()
-        pkey = self.session.get('userkey')
+        if noUser(self):
+            return
         current_user = db.get(pkey)
         if current_user.admin == "True":
             doRender(self, 'show_user.html', { })
@@ -184,8 +224,8 @@ class ShowUserHandler(webapp.RequestHandler):
             doRender(self, 'main.html', {'msg' : 'Require admin previlege!'})
 
     def post(self):
-        self.session = Session()
-        pkey = self.session.get('userkey')
+        if noUser(self):
+            return
         current_user = db.get(pkey)
         
         if current_user.admin == "False":
@@ -207,8 +247,8 @@ class ShowUserHandler(webapp.RequestHandler):
 
 class DeleteUserHandler(webapp.RequestHandler):
     def post(self):
-        self.session = Session()
-        pkey = self.session.get('userkey')
+        if noUser(self):
+            return
         current_user = db.get(pkey)
         
         if current_user.admin == "False":
@@ -233,6 +273,8 @@ class DeleteUserHandler(webapp.RequestHandler):
 
 class ShowSettingHandler(webapp.RequestHandler):
     def get(self):
+        if noUser(self):
+            return
         que = db.Query(Location)
         location_list = que.fetch(limit = 5000) # number of rows
 
@@ -270,8 +312,8 @@ class ShowSettingHandler(webapp.RequestHandler):
 class AddLocationHandler(webapp.RequestHandler):
     
     def post(self):
-        self.session = Session()
-        pkey = self.session.get('userkey')
+        if noUser(self):
+            return
         current_user = db.get(pkey)
 
         t_rname = self.request.get('name')
@@ -288,6 +330,8 @@ class AddLocationHandler(webapp.RequestHandler):
 
 class PreCourseHandler(webapp.RequestHandler):
     def post(self):
+        if noUser(self):
+            return
         location_name = self.request.get('row')
         time_index = int(self.request.get('column'))
         #que = db.Query(Location).filter('rname =', location_name) 
@@ -299,6 +343,8 @@ class PreCourseHandler(webapp.RequestHandler):
 
 class AddCourseHandler(webapp.RequestHandler):
     def post(self):
+        if noUser(self):
+            return
         location_name = self.request.get('location')
         time_index = int(self.request.get('time_index'))
         t_cname = self.request.get('cname')
@@ -320,9 +366,43 @@ class AddCourseHandler(webapp.RequestHandler):
 
         doRender(self, 'setting.html', { } ) 
 
+class TDSettingHandler(webapp.RequestHandler):
+    def get(self):
+        if noUser(self):
+            return
+        que = db.Query(Location)
+        location_list = que.fetch(limit = 5000) # number of rows
 
+        course_list = [] # list of row_list
+        row_list = [] # may deleted
+        time_list = [0,1,2,3,4,5,6]
 
+        for location in location_list:
+            row_list = []
+            row_list.append(location) #row_list[0]: operand Location
 
+            t_key = location.key()
+            que_course = db.Query(Course).filter('loc =', t_key)
+
+            test = que_course.fetch(limit = 2) 
+            if len(test) == 0: # no course in this location
+                for item in time_list:
+                    object_xy = XY(x = location.rname, y = item)
+                    row_list.append( object_xy ) #cell, operand: Object XY()
+            else:
+
+                for item in time_list:
+                    que_cell = db.Query(Course).filter('loc =', t_key).filter('time =', item)  
+                    result = que_cell.fetch(limit = 1) # should be: limit = 1
+                    if len(result) != 0:
+                        row_list.append(result[0]) #cell, operand:Course
+                    else:
+                        object_xy = XY(x = location.rname, y = item)
+                        row_list.append( object_xy ) #cell, oerand: Object XY() 
+                                            
+            course_list.append(row_list)
+        
+        doRender(self, 'td_setting.html', {'course_list' : course_list})
 
 def main():
     application = webapp.WSGIApplication([
@@ -336,6 +416,7 @@ def main():
         ('/add_location', AddLocationHandler),
         ('/pre_course', PreCourseHandler),
         ('/add_course', AddCourseHandler),
+        ('/td_setting',TDSettingHandler),
         ('/.*', IndexHandler)],
         debug=True)
     wsgiref.handlers.CGIHandler().run(application)
