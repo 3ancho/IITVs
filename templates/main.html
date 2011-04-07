@@ -8,6 +8,7 @@
     <p>
     Below is the course and shift info
     </p>
+    {% for course_list in day_list %}
     <table>
         <tr>
             <th> </th>
@@ -28,16 +29,17 @@
                 {% else %} {% if cell.cname %}
                     <td>
                         {{ cell.cname }}
-                         
                     </td>
                 {% else %}
                     <td> 
-                        
+                        {# Empty Here #}    
                     </td>
                 {% endif %} {% endif %} 
             {% endfor %}
         </tr>
         {% endfor %}
     </table>
+    </br>
+    {% endfor %}
 
 {% endblock %}

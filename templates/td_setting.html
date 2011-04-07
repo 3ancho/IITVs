@@ -1,10 +1,12 @@
 {% extends "inbase.html" %}
 {% block bodycontent %}
 
-    <h2> Welcome {{username}}.  {% if msg %} {{msg}} {% endif %} </h2>
+    <h2>{{username}}, {% if msg %} {{msg}} {% endif %} choose sessions
+        or courses you wants to work.
+    </h2>
     <p>
-    You are in the system now
-    </p> 
+    </p>  
+    {% for course_list in day_list %}
     <table>
         <tr>
             <th> </th>
@@ -17,14 +19,14 @@
             <th> 6:30pm-9:10pm</th>
         </tr> 
           
-        {% for row_list in course_list %} 
+      {% for row_list in course_list %} 
         <tr>
             {% for cell in row_list %}
                 {% if cell.rname %}
                     <td>{{ cell.rname }}</td>
                 {% else %} {% if cell.cname %}
                     <td>
-                        <form method="post" action="/pre_course">
+                        <form method="post" action="/assign_td"> {# !started #}
                         <input type="hidden" name="row" value="{{cell.x}}" /> 
                         <input type="hidden" name="column" value="{{cell.y}}" /> 
                         <input type="submit" value="{{cell.cname}}" />
@@ -32,12 +34,18 @@
                     </td>
                 {% else %}
                     <td> 
-                        
+                        {# Empty Here #}                        
                     </td>
                 {% endif %} {% endif %} 
             {% endfor %}
         </tr>
         {% endfor %}
     </table>
+    </br>
+    {% endfor %}
+
 
 {% endblock %}
+
+
+

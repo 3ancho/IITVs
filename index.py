@@ -36,11 +36,22 @@ class Course(db.Model):
         5:00pm-6:10pm 	    5
         6:30pm-9:10pm       6
     '''
+    csession = db.StringProperty() # '1234567' 
     #csection = db.IntegerProperty() # course section number
     #lecturer = db.StringProperty() # lecturer name
     #start = db.TimeProperty()
     #end = db.TimeProperty()
-    
+
+class CSession(Course): #course session
+    td = db.ReferenceProperty(User)
+    w_day = db.StringProperty() # one digit number
+
+class Sheet(db.Model): # delete this March 05
+    date = db.StringProperty() # Mar 09
+    day = db.IntegerProperty() # Mon- 0, Tue- 1, etc. 
+    loc_list = db.StringListProperty() 
+    time_list = db.ListProperty(int)
+
 class XY(db.Model):
     x = db.StringProperty()
     y = db.IntegerProperty()
@@ -51,9 +62,10 @@ class ChatMessage(db.Model):
     text = db.StringProperty()
     created = db.DateTimeProperty(auto_now=True)
 
-
-
 def noUser(handler):
+   '''
+   For Each <inside> Handler, noUser check is needed
+   '''
    handler.session = Session()
    pkey = handler.session.get('userkey')
    if pkey == None:
@@ -61,6 +73,15 @@ def noUser(handler):
        return True 
    else:
        return False 
+
+def Admin():
+    '''
+    check if current user is admin, return true if yes.
+    '''
+    current_user = db.get(pkey)
+    if current_user.admin == "False":
+        doRender(self, 'main.html', {'msg' : 'Require admin previlege!'})
+        return
 
 def doRender(handler, tname = 'index.html', values = { }):
     if tname == '/' or tname == '' or tname == None:
@@ -181,42 +202,51 @@ class MainHandler(webapp.RequestHandler):
         que = db.Query(Location)
         location_list = que.fetch(limit = 5000) # number of rows
 
-        course_list = [] # list of row_list
-        row_list = [] # may deleted
-        time_list = [0,1,2,3,4,5,6]
+        days = ['1','2','3','4','5','6','7'] 
+        day_list = [] # list of course_list
 
-        for location in location_list:
-            row_list = []
-            row_list.append(location) #row_list[0]: operand Location
+        for day in days:
+            course_list = [] # list of row_list
+            row_list = [] # may deleted
+            time_list = [0,1,2,3,4,5,6]
 
-            t_key = location.key()
-            que_course = db.Query(Course).filter('loc =', t_key)
+            for location in location_list:
+                row_list = []
+                row_list.append(location) #row_list[0]: operand Location
 
-            test = que_course.fetch(limit = 2) 
-            if len(test) == 0: # no course in this location
-                for item in time_list:
-                    object_xy = XY(x = location.rname, y = item)
-                    row_list.append( object_xy ) #cell, operand: Object XY()
-            else:
+                t_key = location.key()
+                que_course = db.Query(CSession).filter('w_day =', day).filter('loc =', t_key)
 
-                for item in time_list:
-                    que_cell = db.Query(Course).filter('loc =', t_key).filter('time =', item)  
-                    result = que_cell.fetch(limit = 1) # should be: limit = 1
-                    if len(result) != 0:
-                        row_list.append(result[0]) #cell, operand:Course
-                    else:
+                test = que_course.fetch(limit = 2) 
+                if len(test) == 0: # no course in this location
+                    for item in time_list:
                         object_xy = XY(x = location.rname, y = item)
-                        row_list.append( object_xy ) #cell, oerand: Object XY() 
-                                            
-            course_list.append(row_list)
+                        row_list.append( object_xy ) #cell, operand: Object XY()
+                else:
+
+                    for item in time_list:
+                        que_cell = db.Query(CSession).filter('w_day =', day).filter('loc =', t_key).filter('time =', item)  
+                        result = que_cell.fetch(limit = 1) # should be: limit = 1
+                        if len(result) != 0:
+                            row_list.append(result[0]) #cell, operand:Course
+                        else:
+                            object_xy = XY(x = location.rname, y = item)
+                            row_list.append( object_xy ) #cell, oerand: Object XY() 
+                                                
+                course_list.append(row_list)
+                # end for location in location_list
+            day_list.append(course_list) 
+            # end for day in days
         
-        doRender(self, 'main.html', {'course_list' : course_list})
+        doRender(self, 'main.html', {'day_list' : day_list})
 
 
 class ShowUserHandler(webapp.RequestHandler):
     def get(self):
         if noUser(self):
             return
+        
+        pkey = self.session['userkey']
         current_user = db.get(pkey)
         if current_user.admin == "True":
             doRender(self, 'show_user.html', { })
@@ -226,8 +256,8 @@ class ShowUserHandler(webapp.RequestHandler):
     def post(self):
         if noUser(self):
             return
+        pkey = self.session['userkey']
         current_user = db.get(pkey)
-        
         if current_user.admin == "False":
             doRender(self, 'main.html', {'msg' : 'Require admin previlege!'})
             return
@@ -314,6 +344,7 @@ class AddLocationHandler(webapp.RequestHandler):
     def post(self):
         if noUser(self):
             return
+        pkey = self.session['userkey']
         current_user = db.get(pkey)
 
         t_rname = self.request.get('name')
@@ -339,8 +370,6 @@ class PreCourseHandler(webapp.RequestHandler):
         doRender(self, 'add_course.html', \
                 {'loc' : location_name, 't_index' : time_index} )
 
-
-
 class AddCourseHandler(webapp.RequestHandler):
     def post(self):
         if noUser(self):
@@ -349,14 +378,21 @@ class AddCourseHandler(webapp.RequestHandler):
         time_index = int(self.request.get('time_index'))
         t_cname = self.request.get('cname')
         t_cnumber = int(self.request.get('cnumber'))
+        t_csession = self.request.get('csession') # String of numbers.
         #t_time = self.request.get('time')  # March 31 need improve!
         
         que = db.Query(Location).filter('rname =', location_name) 
         location_key = que.fetch(limit = 1)[0].key()
 
         new_course = Course(loc = location_key, time = time_index, \
-                cname = t_cname, cnumber = t_cnumber)
+                cname = t_cname, cnumber = t_cnumber, csession = t_csession )
         new_course.put()
+
+        for i in  t_csession:
+            new_csession = CSession(loc = location_key, time = time_index, \
+                cname = t_cname, cnumber = t_cnumber, \
+                csession = t_csession, w_day = i)
+            new_csession.put()
         
         que_loc = db.Query(Location)
         location_list = que_loc.fetch(limit = 500)
@@ -373,36 +409,51 @@ class TDSettingHandler(webapp.RequestHandler):
         que = db.Query(Location)
         location_list = que.fetch(limit = 5000) # number of rows
 
-        course_list = [] # list of row_list
-        row_list = [] # may deleted
-        time_list = [0,1,2,3,4,5,6]
+        days = ['1','2','3','4','5','6','7'] 
+        day_list = [] # list of course_list
 
-        for location in location_list:
-            row_list = []
-            row_list.append(location) #row_list[0]: operand Location
+        for day in days:
+            course_list = [] # list of row_list
+            row_list = [] # may deleted
+            time_list = [0,1,2,3,4,5,6]
 
-            t_key = location.key()
-            que_course = db.Query(Course).filter('loc =', t_key)
+            for location in location_list:
+                row_list = []
+                row_list.append(location) #row_list[0]: operand Location
 
-            test = que_course.fetch(limit = 2) 
-            if len(test) == 0: # no course in this location
-                for item in time_list:
-                    object_xy = XY(x = location.rname, y = item)
-                    row_list.append( object_xy ) #cell, operand: Object XY()
-            else:
+                t_key = location.key()
+                que_course = db.Query(CSession).filter('w_day =', day).filter('loc =', t_key)
 
-                for item in time_list:
-                    que_cell = db.Query(Course).filter('loc =', t_key).filter('time =', item)  
-                    result = que_cell.fetch(limit = 1) # should be: limit = 1
-                    if len(result) != 0:
-                        row_list.append(result[0]) #cell, operand:Course
-                    else:
+                test = que_course.fetch(limit = 2) 
+                if len(test) == 0: # no course in this location
+                    for item in time_list:
                         object_xy = XY(x = location.rname, y = item)
-                        row_list.append( object_xy ) #cell, oerand: Object XY() 
-                                            
-            course_list.append(row_list)
+                        row_list.append( object_xy ) #cell, operand: Object XY()
+                else:
+
+                    for item in time_list:
+                        que_cell = db.Query(CSession).filter('w_day =', day).filter('loc =', t_key).filter('time =', item)  
+                        result = que_cell.fetch(limit = 1) # should be: limit = 1
+                        if len(result) != 0:
+                            row_list.append(result[0]) #cell, operand:Course
+                        else:
+                            object_xy = XY(x = location.rname, y = item)
+                            row_list.append( object_xy ) #cell, oerand: Object XY() 
+                                                
+                course_list.append(row_list)
+                # end for location in location_list
+            day_list.append(course_list) 
+            # end for day in days
         
-        doRender(self, 'td_setting.html', {'course_list' : course_list})
+        doRender(self, 'td_setting.html', {'day_list' : day_list})
+
+class PreAssignHandler(webapp.RequestHandler):
+    def post():
+        pass
+
+class AssignTDHandler(webapp.RequestHandler):
+    def post():
+        pass
 
 def main():
     application = webapp.WSGIApplication([
@@ -417,6 +468,7 @@ def main():
         ('/pre_course', PreCourseHandler),
         ('/add_course', AddCourseHandler),
         ('/td_setting',TDSettingHandler),
+        ('/assign_td', AssignTDHandler),
         ('/.*', IndexHandler)],
         debug=True)
     wsgiref.handlers.CGIHandler().run(application)
