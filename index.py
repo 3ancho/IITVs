@@ -315,26 +315,11 @@ class ShowSettingHandler(webapp.RequestHandler):
         for location in location_list:
             row_list = []
             row_list.append(location) #row_list[0]: operand Location
-
             t_key = location.key()
-            que_course = db.Query(Course).filter('loc =', t_key)
 
-            test = que_course.fetch(limit = 2) 
-            if len(test) == 0: # no course in this location
-                for item in time_list:
-                    object_xy = XY(x = location.rname, y = item)
-                    row_list.append( object_xy ) #cell, operand: Object XY()
-            else:
-
-                for item in time_list:
-                    que_cell = db.Query(Course).filter('loc =', t_key).filter('time =', item)  
-                    result = que_cell.fetch(limit = 1) # should be: limit = 1
-                    if len(result) != 0:
-                        row_list.append(result[0]) #cell, operand:Course
-                    else:
-                        object_xy = XY(x = location.rname, y = item)
-                        row_list.append( object_xy ) #cell, oerand: Object XY() 
-                                            
+            for item in time_list:
+                object_xy = XY(x = location.rname, y = item)
+                row_list.append( object_xy ) #cell, oerand: Object XY() 
             course_list.append(row_list)
         
         doRender(self, 'setting.html', {'course_list' : course_list})
@@ -364,7 +349,7 @@ class PreCourseHandler(webapp.RequestHandler):
         if noUser(self):
             return
         location_name = self.request.get('row')
-        time_index = int(self.request.get('column'))
+        time_index = int(self.request.get('column')) 
         #que = db.Query(Location).filter('rname =', location_name) 
         #t_location = que.fetch(limit = 1)[0]
         doRender(self, 'add_course.html', \
