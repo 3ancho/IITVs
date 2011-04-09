@@ -4,7 +4,7 @@
     <p>
         Manage Course and Room. 
     </p>  
-    <h3> Real Table </h3>
+    <h3> Input Table </h3>
     <table>
         <tr>
             <th> </th>
@@ -41,5 +41,19 @@
     </br>   
     <a href="/show_setting">Display / Refresh</a> 
     <!-- /show_setting (GET), means show setting.html -->    
+
+    <h3> Recent added course-session(s) </h3>  
+    {% for session in csession_list %}
+        <p>
+        {{ session.cname }} ({{ session.w_day }})
+        {{ session.created|date:"D M Y" }}
+        </p>
+    {% endfor %}
+
+    {% if msg %}
+       <h2>
+       Error: {{ msg }} !
+       </h2>
+    {% endif %}
 
 {% endblock %}

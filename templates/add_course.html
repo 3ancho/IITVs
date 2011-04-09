@@ -4,6 +4,7 @@
       <p>
       Please enter Course information below:
       </p>
+      <h1> Some prompt 1. location name  2. time_index </h1>
       
       <form method="post" action="/add_course">
           <table>
@@ -14,7 +15,7 @@
                   <td>Course Number:</td> <td><input type="text" name="cnumber"/></td>
               </tr>
               <tr> 
-                  <td>Session(s):</td> <td><input type="text" name="csession"/></td>
+                  <td>Session(s):</td> <td><input type="text" name="csessions"/></td>
               </tr> 
               <tr> 
                   <td>Time Duraion:</td> <td><input type="text" name="time"/></td>
@@ -22,8 +23,8 @@
           </table>
           <p>Session is text: e.g. '1234567'</p>
           
-          <input type="hidden" name="location" value="{{loc}}" />
-          <input type="hidden" name="time_index" value="{{t_index}}" />
+          <input type="hidden" name="loc_key" value="{{loc_key}}" />
+          <input type="hidden" name="time_index" value="{{time_index}}" />
           <input type="submit" value="Create"/> 
           <input type="reset" value="Clear"/>
       </form>

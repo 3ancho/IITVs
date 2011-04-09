@@ -1,0 +1,38 @@
+{% extends "inbase.html" %}
+{% block bodycontent %}
+
+    <table>
+        <tr>
+            <th> </th>
+            <th> Full Name</th>
+            <th> username</th>
+            <th> CWID</th>
+            <th> Major</th>
+            <th> Desired Hours</th>
+            <th> Assigned Hours</th>
+            <th> email</th>
+            <th> phone #</th>
+        </tr> 
+          
+        {% for td in td_list%} {# td is User Obj #} 
+        <tr>
+            <td>
+            <form method="post" action="/assign_td">     
+                <input type="hidden" name="td_key" value="{{td.key}}" />
+                <input type="hidden" name="cs_key" value="{{cs_key}}" />
+                <input type="submit" value="Select" />
+            </form>
+            </td>
+            <td>{{td.name}}</td>
+            <td>{{td.username}}</td>
+            <td>{{td.cwid}}</td>
+            <td>{{td.major}}</td>
+            <td>{{td.d_hours}}</td>
+            <td>{{td.a_hours}}</td>
+            <td>{{td.email}}</td>
+            <td>{{td.phone}}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+{% endblock %}
