@@ -1,6 +1,11 @@
 {% extends "inbase.html" %}
 {% block bodycontent %}
-<h2> Below are the sessions without a TD </h2>
+
+    <h2>{{username}}, {% if msg %} {{msg}} {% else %} choose sessions
+        or courses you wants to work. {% endif %}
+    </h2>
+    <p>
+    </p>  
     {% for course_list in day_list %}
     <table>
         <tr>
@@ -13,20 +18,21 @@
             <th> 5:00pm-6:10pm</th>
             <th> 6:30pm-9:10pm</th>
         </tr> 
-           
-      {% for row_list in course_list %} 
+          
+        {% for row_list in course_list %} 
         <tr>
-            {% for cell in row_list %} {# cell is CS object or " " or location #}
+            {% for cell in row_list %}
                 {% if cell.rname %}
                     <td>{{ cell.rname }}</td>
-                {% else %} {% if cell.cname %}
+                {% else %} {% if cell.z %}
                     <td>
-                        <form method="post" action="/pre_assign_td"> {# !started #}
-                        <input type="hidden" name="cs_key" value="{{cell.key}}" /> 
-                        <input type="submit" value="{{cell.cname}}" />
+                        <form method="post" action="/list_td"> 
+                        {# add the Current TD to the Session's td_list #}
+                        <input type="hidden" name="cs_key" value="{{cell.x}}" /> 
+                        <input type="submit" value="{{cell.z}}" />
                         </form> 
                     </td>
-                {% else %} 
+                {% else %}
                     <td> 
                         {# Empty Here #}                        
                     </td>
@@ -40,7 +46,6 @@
 
 
 {% endblock %}
-
 
 
 

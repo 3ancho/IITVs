@@ -99,7 +99,10 @@ def doRender(handler, tname = 'index.html', values = { }):
     newval['path'] = handler.request.path
     if 'username' in handler.session:
         newval['username'] = handler.session['username']
-
+    admin = handler.session.get('admin')
+    if admin != 'False':
+        newval['admin'] = admin
+    
     outstr = template.render(temp, newval)
     handler.response.out.write(outstr)
     return True
@@ -151,6 +154,7 @@ class LoginHandler(webapp.RequestHandler):
 
         self.session.delete_item('username')
         self.session.delete_item('userkey')
+        self.session.delete_item('admin')
 
         if pw == '' or un == '':
             doRender(
@@ -170,6 +174,7 @@ class LoginHandler(webapp.RequestHandler):
             user = results[0]
             self.session['userkey'] = user.key()
             self.session['username'] = un
+            self.session['admin'] = user.admin
             self.redirect('/main') 
             #doRender(self,'main.html', {} ) # if ok, go to main.html (logged in)
         else:
@@ -184,6 +189,7 @@ class LogoutHandler(webapp.RequestHandler):
             return
         self.session.delete_item('username')
         self.session.delete_item('userkey')
+        self.session.delete_item('admin')
         doRender(self, 'index.html', {'msg' : ' Logout successful.'} ) 
 
 class IndexHandler(webapp.RequestHandler):
@@ -276,6 +282,7 @@ class DeleteUserHandler(webapp.RequestHandler):
     def post(self):
         if noUser(self):
             return
+        pkey = self.session['userkey']
         current_user = db.get(pkey)
         
         if current_user.admin == "False":
@@ -298,9 +305,9 @@ class DeleteUserHandler(webapp.RequestHandler):
 
         doRender(self, 'show_user.html', {})
 
-class ShowSettingHandler(webapp.RequestHandler):
+class SetupHandler(webapp.RequestHandler):
     '''
-    Correspond to (setting.html)
+    Correspond to (setup.html)
     '''
     def get(self):
         if noUser(self):
@@ -325,7 +332,7 @@ class ShowSettingHandler(webapp.RequestHandler):
 
         que_recent = db.Query(CSession).order('-created')
         cs_list = que_recent.fetch(limit = 6)
-        doRender(self, 'setting.html', {'course_list' : c_list, 'csession_list' : cs_list}) 
+        doRender(self, 'setup.html', {'course_list' : c_list, 'csession_list' : cs_list}) 
 
 class AddLocationHandler(webapp.RequestHandler):
     
@@ -342,7 +349,7 @@ class AddLocationHandler(webapp.RequestHandler):
         new_location = Location(rname = t_rname, camera = t_camera, size = t_size)
         new_location.put()
 
-        self.redirect('/show_setting')
+        self.redirect('/setup')
 
 class PreCourseHandler(webapp.RequestHandler):
     def post(self):
@@ -374,7 +381,7 @@ class AddCourseHandler(webapp.RequestHandler):
             que_test = db.Query(CSession).filter('loc =', location_key).filter('time =', time_index).filter('w_day =', i)
             result_test = que_test.fetch(limit = 1)
             if len(result_test) != 0:
-                doRender(self,'setting.html', {'msg': 'Session Conflict'})
+                doRender(self,'setup.html', {'msg': 'Session Conflict'})
                 return
 
         for i in t_csessions:
@@ -386,9 +393,9 @@ class AddCourseHandler(webapp.RequestHandler):
         new_course = Course(loc = location_key, time = time_index, \
                 cname = t_cname, cnumber = t_cnumber, csessions = t_csessions )
         new_course.put()
-        self.redirect('/show_setting')
+        self.redirect('/setup')
 
-class TDSettingHandler(webapp.RequestHandler):
+class TDSessionHandler(webapp.RequestHandler):
     def get(self):
         '''
         Disply 7 Sheet of data. Display Course_Sessions.
@@ -437,11 +444,12 @@ class TDSettingHandler(webapp.RequestHandler):
             day_list.append(course_list) 
             # end for day in days
         
-        doRender(self, 'td_setting.html', {'day_list' : day_list})
+        doRender(self, 'td_session.html', {'day_list' : day_list})
 
 class ListTDHandler(webapp.RequestHandler):
     def post(self):
         '''
+        This may combined with TDSessionHandler
         When TD select a desired session, TD's key(current User key)
         will be added to this session's td_list.
         '''
@@ -452,11 +460,15 @@ class ListTDHandler(webapp.RequestHandler):
 
         cs_key = db.Key(self.request.get('cs_key'))
         cs = db.get(cs_key) # Course Session Obj
+        if user_key in cs.td_list:
+            doRender(self, 'td_session.html', {'msg': \
+                    'you have selected this session'})
+            return
 
         cs.td_list.append(user_key)
         cs.put()
 
-        self.redirect('/td_setting')
+        self.redirect('/td_session')
 
 class PreAssignTDHandler(webapp.RequestHandler):
     def get(self):
@@ -496,9 +508,12 @@ class PreAssignTDHandler(webapp.RequestHandler):
                         result = que_cell.fetch(limit = 1) 
                         
                         if len(result) != 0:
-                            row_list.append(result[0]) # CS object 
+                            if result[0].td != None:
+                                row_list.append(' ')
+                            else:
+                                row_list.append(result[0]) # CS object 
                         else:
-                            row_list.append(" ") # empty string
+                            row_list.append(' ') # empty string
                 course_list.append(row_list)
                 # end for location in location_list
             day_list.append(course_list) 
@@ -515,7 +530,7 @@ class PreAssignTDHandler(webapp.RequestHandler):
          
         cs_key = db.Key(self.request.get('cs_key'))
         cs = db.get(cs_key) # CSession obj
-        
+         
         td_list = []
         for key in cs.td_list:
             a_td = []
@@ -542,6 +557,15 @@ class AssignTDHandler(webapp.RequestHandler):
        
         doRender(self, 'assign_ok.html', {'td': td.name, 'cs': cs.cname, 'day': cs.w_day} ) 
 
+class TDSettingHandler(webapp.RequestHandler):
+    def get(self):
+        if noUser(self):
+            return
+        doRender(self, 'td_setting.html', {})
+
+    def post(self):
+        pass
+
 def main():
     application = webapp.WSGIApplication([
         ('/login', LoginHandler),
@@ -550,14 +574,15 @@ def main():
         ('/main', MainHandler), 
         ('/show_user', ShowUserHandler),
         ('/delete_user', DeleteUserHandler),
-        ('/show_setting', ShowSettingHandler),
+        ('/setup', SetupHandler),
         ('/add_location', AddLocationHandler),
         ('/pre_course', PreCourseHandler),
         ('/add_course', AddCourseHandler),
-        ('/td_setting',TDSettingHandler),
+        ('/td_session', TDSessionHandler),
         ('/list_td', ListTDHandler),
-        ('/pre_assign_td',PreAssignTDHandler),
-        ('/assign_td',AssignTDHandler),
+        ('/pre_assign_td', PreAssignTDHandler),
+        ('/assign_td', AssignTDHandler),
+        ('/td_setting', TDSettingHandler),
         ('/.*', IndexHandler)],
         debug=True)
     wsgiref.handlers.CGIHandler().run(application)

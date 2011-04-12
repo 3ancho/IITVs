@@ -16,29 +16,44 @@
                         class = "selected"
                     {% endifequal %} 
                     >Main</a></li>
+                
+                <li><a href = "/user_info"
+                    {% ifequal path "/user_info" %}
+                        class = "selected"
+                    {% endifequal %} 
+                    >User Info: {{username}}</a></li>
 
                 <li><a href = "/td_setting"
                     {% ifequal path "/td_setting" %}
                         class = "selected"
                     {% endifequal %} 
-                    >TD settings</a></li>
+                    >TD Settings</a></li>
 
+                <li><a href = "/td_session"
+                    {% ifequal path "/td_session" %}
+                        class = "selected"
+                    {% endifequal %} 
+                    >TD select session</a></li>
+                
+                {% if admin %}
                 <li><a href = "show_user.html"
                     {% ifequal path "/show_user.html" %}
                         class = "selected"
                     {% endifequal %} 
                     >Show User</a></li>
 
-                <li><a href = "/show_setting"
-                    {% ifequal path "/show_setting" %}
+                <li><a href = "/setup"
+                    {% ifequal path "/setup" %}
                         class = "selected"
                     {% endifequal %} 
-                    >Settings</a></li>
+                    >Set Up</a></li>
+
                 <li><a href = "/pre_assign_td"
                     {% ifequal path "/pre_assign_td" %}
                         class = "selected"
                     {% endifequal %} 
                     >Assign TD</a></li>
+                {% endif %}
 
                 <li><a href = "/logout">Logout ({{username}})</a></li>     
             </ul>

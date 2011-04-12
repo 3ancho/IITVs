@@ -1,51 +1,31 @@
 {% extends "inbase.html" %}
 {% block bodycontent %}
-
-    <h2>{{username}}, {% if msg %} {{msg}} {% endif %} choose sessions
-        or courses you wants to work.
-    </h2>
-    <p>
-    </p>  
-    {% for course_list in day_list %}
-    <table>
-        <tr>
-            <th> </th>
-            <th> 8:30am-9:45am</th>
-            <th> 10:00am-11:15am</th>
-            <th> 11:30am-12:40pm</th>
-            <th> 1:50pm-3:00pm</th>
-            <th> 3:15pm-4:30pm</th>
-            <th> 5:00pm-6:10pm</th>
-            <th> 6:30pm-9:10pm</th>
-        </tr> 
-          
-      {% for row_list in course_list %} 
-        <tr>
-            {% for cell in row_list %}
-                {% if cell.rname %}
-                    <td>{{ cell.rname }}</td>
-                {% else %} {% if cell.z %}
-                    <td>
-                        <form method="post" action="/list_td"> 
-                        {# add the Current TD to the Session's td_list #}
-                        <input type="hidden" name="cs_key" value="{{cell.x}}" /> 
-                        <input type="submit" value="{{cell.z}}" />
-                        </form> 
-                    </td>
-                {% else %}
-                    <td> 
-                        {# Empty Here #}                        
-                    </td>
-                {% endif %} {% endif %} 
-            {% endfor %}
-        </tr>
-        {% endfor %}
-    </table>
-    </br>
-    {% endfor %}
-
+    <form method="post" action="/">
+        <table>
+            <tr>
+                <td>CWID:</td>
+                <td><input type="text" name="cwid"/></td>
+            </tr>
+            <tr>
+                <td>Major:</td>
+                <td><input type="text" name="major"/></td>
+            </tr>
+            <tr> 
+                <td>email:</td>
+                <td><input type="text" name="email"/></td>
+            </tr> 
+            <tr> 
+                <td>phone:</td>
+                <td><input type="text" name="phone"/></td>
+            </tr> 
+            <tr> 
+                <td>desired hours</td>
+                <td><input type="text" name="d_hours"/></td>
+            </tr> 
+        </table>
+        <input type="submit" value="Create"/> 
+        <input type="submit" value="Cancel" 
+            onclick="window.location='/'; return false;"/>
+     </form>
 
 {% endblock %}
-
-
-
