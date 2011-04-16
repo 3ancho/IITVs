@@ -213,6 +213,7 @@ class MainHandler(webapp.RequestHandler):
     def get(self):
         if noUser(self):
             return
+        
         que = db.Query(Location)
         location_list = que.fetch(limit = 500) # number of rows
 

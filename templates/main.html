@@ -1,6 +1,9 @@
 {% extends "inbase.html" %}
 {% block bodycontent %}
 
+<script type="text/javascript" src="tabber.js">
+</script>
+
     <h2> Welcome {{username}}.  {% if msg %} {{msg}} {% endif %} </h2>
     <p>
     You are in the system now.
@@ -8,44 +11,50 @@
     <p>
     Below is the course and shift info.
     </p>
-    {% for course_list in day_list %}
-    <table>
-        <thead>
-            <tr>
-                <th> </th>
-                <th> 8:30am-9:45am</th>
-                <th> 10:00am-11:15am</th>
-                <th> 11:30am-12:40pm</th>
-                <th> 1:50pm-3:00pm</th>
-                <th> 3:15pm-4:30pm</th>
-                <th> 5:00pm-6:10pm</th>
-                <th> 6:30pm-9:10pm</th>
-            </tr> 
-        </thead>  
-
-        <tbody>
-            {% for row_list in course_list %} 
-            <tr>
-                {% for cell in row_list %}
-                    {% if cell.rname %}
-                        <td>{{ cell.rname }}</td>
-                    {% else %} {% if cell.info1 %}
-                        <td>
-                            {{ cell.info1.cname }} {# if cell is a Session#}
-                            :
-                            {{ cell.info2.name }}
-                        </td>
-                    {% else %}
-                        <td> 
-                            {# if cell is empty(!location !session) #}    
-                        </td>
-                    {% endif %} {% endif %} 
-                {% endfor %}
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    </br></br></br>
-    {% endfor %}
-
+    <div class="tabber">
+        {% for course_list in day_list %}
+        <div class="tabbertab">
+            <h2></h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th> </th>
+                        <th> 8:30am-9:45am</th>
+                        <th> 10:00am-11:15am</th>
+                        <th> 11:30am-12:40pm</th>
+                        <th> 1:50pm-3:00pm</th>
+                        <th> 3:15pm-4:30pm</th>
+                        <th> 5:00pm-6:10pm</th>
+                        <th> 6:30pm-9:10pm</th>
+                    </tr> 
+                </thead>  
+                <tbody>
+                    {% for row_list in course_list %} 
+                    <tr>
+                        {% for cell in row_list %}
+                            {% if cell.rname %}
+                                <td>{{ cell.rname }}</td>
+                            {% else %} {% if cell.info1 %}
+                                <td>
+                                    {{ cell.info1.cname }} {# if cell is a Session#}
+                                    :
+                                    {% if cell.info2.name %}}
+                                        {{ cell.info2.name }}
+                                    {% else %}
+                                        No TD
+                                    {% endif %}
+                                </td>
+                            {% else %}
+                                <td> 
+                                    {# if cell is empty(!location !session) #}    
+                                </td>
+                            {% endif %} {% endif %} 
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endfor %}
+    </div>
 {% endblock %}
