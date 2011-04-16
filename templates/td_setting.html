@@ -1,31 +1,61 @@
 {% extends "inbase.html" %}
 {% block bodycontent %}
-    <form method="post" action="/">
+<script type = "text/javascript">
+    function hello()
+    {
+        var hello = document.getElementById("hello")
+        hello.innerHTML = "helloworld";
+    }
+</script>
+    <form method="post" action="/td_setting">
         <table>
+            <th>
+                <td>Input value</td>
+                <td>Current value</td>
+            </th>
             <tr>
                 <td>CWID:</td>
-                <td><input type="text" name="cwid"/></td>
+                <td><input type="text" name="cwid" /></td>
+                <td> {{u.cwid}} </td>
             </tr>
             <tr>
                 <td>Major:</td>
-                <td><input type="text" name="major"/></td>
+                <td><input type="text" name="major" /></td>
+                <td> {{u.major}} </td>
             </tr>
             <tr> 
                 <td>email:</td>
-                <td><input type="text" name="email"/></td>
+                <td><input type="text" name="email" /></td>
+                <td> {{u.email}} </td>
             </tr> 
             <tr> 
                 <td>phone:</td>
-                <td><input type="text" name="phone"/></td>
+                <td><input type="text" name="phone" /></td>
+                <td> {{u.phone}} </td>
             </tr> 
             <tr> 
-                <td>desired hours</td>
-                <td><input type="text" name="d_hours"/></td>
+                <td>desired hours:</td>
+                <td><input type="text" name="d_hours" /></td>
+                <td> {{u.d_hours}} </td>
             </tr> 
+            <tr>
+                <td> Assigned hours:</td>
+                <td> N/A </td>
+                <td> {{u.a_hours}} </td>
+            </tr>
+            <tfoot>
+                <td></td>
+                <td>
+                    <input type="submit" value="Submit"/> 
+                    <input type="reset" value="Clear" />
+                </td>
+            </tfoot>
+            <h1 id="hello"></h1>
+            <p onload = hello()></p>
         </table>
-        <input type="submit" value="Create"/> 
-        <input type="submit" value="Cancel" 
-            onclick="window.location='/'; return false;"/>
-     </form>
+    </form>
+    {% if msg %}
+    <p> {{msg}} </p>
+    {% endif %}
 
 {% endblock %}

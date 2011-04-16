@@ -29,13 +29,15 @@
                 {% for cell in row_list %}
                     {% if cell.rname %}
                         <td>{{ cell.rname }}</td>
-                    {% else %} {% if cell.cname %}
+                    {% else %} {% if cell.info1 %}
                         <td>
-                            {{ cell.cname }}
+                            {{ cell.info1.cname }} {# if cell is a Session#}
+                            :
+                            {{ cell.info2.name }}
                         </td>
                     {% else %}
                         <td> 
-                            {# Empty Here #}    
+                            {# if cell is empty(!location !session) #}    
                         </td>
                     {% endif %} {% endif %} 
                 {% endfor %}

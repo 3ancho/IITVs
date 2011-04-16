@@ -17,6 +17,12 @@ class User(db.Model):
     created = db.DateTimeProperty(auto_now=True)
     #admin = db.BooleanProperty()
     admin = db.StringProperty()
+    email = db.EmailProperty()
+    cwid = db.StringProperty()
+    major = db.StringProperty()
+    phone = db.PhoneNumberProperty()
+    d_hours = db.IntegerProperty()
+    a_hours = db.IntegerProperty(default = 0)
 
 class Location(db.Model):
     rname = db.StringProperty()
@@ -53,6 +59,11 @@ class XY(db.Model): # an object helps to pass values
     y = db.IntegerProperty() # column: time slot -> Ingeter
     z = db.StringProperty() # specify a day
     zz = db.StringProperty() # specify course_session name
+
+class Compact:
+    def __init__(self, info1, info2):
+        self.info1 = info1
+        self.info2 = info2
 
 # end of class definitions, start of helper functions
 
@@ -230,11 +241,14 @@ class MainHandler(webapp.RequestHandler):
                     for item in time_list:
                         que_cell = db.Query(CSession).filter('w_day =', day).filter('loc =', t_key).filter('time =', item)  
                         result = que_cell.fetch(limit = 1) # should be: limit = 1
-                        if len(result) != 0:
-                            row_list.append(result[0]) #cell, operand:Course
+                        if len(result) != 0: # Result is session obj, and it exists
+                            session = result[0]
+                            td = session.td
+                            info = Compact(info1 = session, info2 = td) 
+                            row_list.append( info ) #cell, operand: Session
                         else:
-                            object_xy = XY(x = location.rname, y = item)
-                            row_list.append( object_xy ) #cell, oerand: Object XY() 
+                            #object_xy = XY(x = location.rname, y = item)
+                            row_list.append( '' ) #cell, oerand: Object XY() 
                                                 
                 course_list.append(row_list)
                 # end for location in location_list
@@ -535,10 +549,6 @@ class PreAssignTDHandler(webapp.RequestHandler):
         for key in cs.td_list:
             a_td = []
             user = db.get(key) # User Object
-            #a_td.append(user.key())
-            #a_td.append(user.name)
-            #a_td.append(user.username)
-            #a_td.append(user.password)
             td_list.append(user)
 
         doRender(self, 'show_td_list.html', {'td_list' : td_list, 'cs_key' : cs_key})
@@ -549,11 +559,12 @@ class AssignTDHandler(webapp.RequestHandler):
         cs_key = db.Key( self.request.get('cs_key') )
         td = db.get(td_key)
         cs = db.get(cs_key)
-        
-        # Update TD assiged hours !!!!!!
+       
+        td.a_hours = td.a_hours + 1
         cs.td = td_key
         cs.td_list.remove(td_key)
         cs.put()
+        td.put()
        
         doRender(self, 'assign_ok.html', {'td': td.name, 'cs': cs.cname, 'day': cs.w_day} ) 
 
@@ -561,10 +572,30 @@ class TDSettingHandler(webapp.RequestHandler):
     def get(self):
         if noUser(self):
             return
-        doRender(self, 'td_setting.html', {})
+        self.session = Session()
+        key = self.session.get('userkey')
+        user = db.get(key) 
+        doRender(self, 'td_setting.html', {'u': user})
 
     def post(self):
-        pass
+        self.session = Session()
+        pkey = self.session.get('userkey')
+        user = db.get(pkey)
+   
+        cwid = self.request.get('cwid')
+        major = self.request.get('major')
+        email = db.Email(self.request.get('email'))
+        phone = db.PhoneNumber(self.request.get('phone'))
+        d_hours = int(self.request.get('d_hours'))
+        
+        user.cwid = cwid
+        user.major = major
+        user.email = email
+        user.phone = phone
+        user.d_hours = d_hours
+        user.put()
+
+        doRender(self, 'td_setting.html', {'msg' : 'info updated'} )
 
 def main():
     application = webapp.WSGIApplication([
