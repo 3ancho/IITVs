@@ -1,7 +1,6 @@
 body {
-    font-family: arial, san-serif;
+    font-family: helvetica, arial, san-serif;
 }
-
 a
 {
     color: blue;
@@ -53,56 +52,40 @@ h1, h2, h3, h4 {
     text-decoration: none;
 }
 
-
-#hor-minimalist-b
-{
-	font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
-	font-size: 12px;
-	background: #fff;
-	margin: 45px;
-	width: 480px;
-	border-collapse: collapse;
-	text-align: left;
+#bodycontent {
+    margin-top: 7px;
+    padding-top:1px;
+    padding-left: 12px;
+    padding-right: 12px;
+    background: #f4f4f4;
+    padding-bottom: 30px;
+    border-bottom: 4px solid #d0d0d0;
 }
+
 th
 {
+    text-align: left;
 	font-size: 14px;
 	font-weight: normal;
 	color: #039;
 	padding: 10px 8px;
 	border-bottom: 2px solid #6678b1;
+    width: 200px;
 }
 td
 {
+    text-align: left;
 	border-bottom: 1px solid #ccc;
 	color: #669;
 	padding: 6px 8px;
+    margin: 2px;
+    height: 25px;
 }
 tbody tr:hover td
 {
-	color: #009;
+	color: #07b;
 }
 
-/*
-table{
-    font_family: 
-    border-collapse: collapse;
-    border: 1.5px solid black;
-}
-
-th {
-    text-align: left;
-    border: 1px solid black;
-    background: gray;
-    color: white;
-    padding: 0.2em;
-}
-
-td {
-    border: 1px solid black;
-    padding: 0.2em;
-}
-*/
 
 /* $Id: example.css,v 1.5 2006/03/27 02:44:36 pat Exp $ */
 
@@ -134,7 +117,6 @@ ul.tabbernav
  padding: 3px 0;
  border-bottom: 1px solid #778;
  font: bold 12px Verdana, sans-serif;
- width: 1012px;
 }
 
 ul.tabbernav li
@@ -185,7 +167,6 @@ ul.tabbernav li.tabberactive a:hover
  padding:5px;
  border:1px solid #aaa;
  border-top:0;
- width: 1000px;
 
  /* If you don't want the tab size changing whenever a tab is changed
     you can set a fixed height */

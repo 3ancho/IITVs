@@ -1,11 +1,31 @@
 {% extends "base.html" %}
 {% block bodycontent %}
-    <h2> Welcome to IITV Scheduler </h2>
     {% if msg %}
         <p> {{msg}} </p>
     {% endif %} 
     <p>
+    <h3> Welcome! </h3></br>
     This application will help to schedule TDs. Also it will
     disply all the shift status. Feed back is needed.
     </p>  
+    <h3>Introduction</h3>
+    <ol>
+        <li>
+            Admin add locations (Classrooms). [Setup]
+        </li>
+        <li>
+            Admin add Course(also Course Session) to a location. [Setup]
+        </li>
+        <li>
+            TD update some detailed information like major desired working hours.
+            [TD Settings] 
+        </li>
+        <li>
+            TD select sessions which he/she wants to work. [TD select session]
+        </li>
+        <li>
+            When all TD have selected their wanna-work-sessions.
+            Admin assign a TD from a list. [Assign TD]
+        </li>
+    </ol>
 {% endblock %}

@@ -8,11 +8,12 @@
     }
 </script>
     <form method="post" action="/td_setting">
-        <table>
-            <th>
+        <table style="text-align: center; ">
+            <tr>
+                <td></td>
                 <td>Input value</td>
                 <td>Current value</td>
-            </th>
+            </tr>
             <tr>
                 <td>CWID:</td>
                 <td><input type="text" name="cwid" /></td>
@@ -44,8 +45,8 @@
                 <td> {{u.a_hours}} </td>
             </tr>
             <tfoot>
-                <td></td>
-                <td>
+                <td style="border-bottom:0px"></td>
+                <td style="border-bottom:0px">
                     <input type="submit" value="Submit"/> 
                     <input type="reset" value="Clear" />
                 </td>

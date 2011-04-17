@@ -1,6 +1,5 @@
 {% extends "inbase.html" %}
 {% block bodycontent %}
-
     <h2>{{username}}, {% if msg %} {{msg}} {% else %} choose sessions
         or courses you wants to work. {% endif %}
     </h2>
@@ -48,5 +47,6 @@
     </div>
 {% endblock %}
 
-
-
+{% block tab %}
+{% include "tab.html" %}
+{% endblock %}
