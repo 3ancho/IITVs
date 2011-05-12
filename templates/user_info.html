@@ -1,0 +1,29 @@
+{% extends "inbase.html" %}
+{% block bodycontent %}
+    <h2>User Info</h2>
+    <p>
+    There are ({{length}}) sessions assigned to ({{name}}).
+    </p> 
+
+    <table>
+        <tr>
+            <td>Course Name</td>
+            <td>Time</td>
+            <td>Day</td>
+        </tr> 
+          
+        {% for session in sessions %} {# td is User Obj #} 
+        <tr>
+            <td>{{session.cname}}</td>
+            <td>{{session.time}}</td>
+            <td>{{session.w_day}}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    {% if msg %}
+        <p> {{msg}} </p>
+   {% endif %}  
+
+{% endblock %}
+

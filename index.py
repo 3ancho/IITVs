@@ -598,6 +598,24 @@ class TDSettingHandler(webapp.RequestHandler):
 
         doRender(self, 'td_setting.html', {'msg' : 'info updated'} )
 
+class UserInfoHandler(webapp.RequestHandler):
+    def get(self):
+        self.session = Session()
+        pkey = self.session.get('userkey')
+        user = db.get(pkey)
+        name = user.name
+        
+        que = db.Query(CSession).filter('td =', pkey) 
+        session_list = que.fetch(limit = 100)
+        doRender(self, 'user_info.html', {'sessions' : session_list, \
+                'length': str(len(session_list)), \
+                'name': name})
+                
+    def post(self):
+        pass
+
+
+
 def main():
     application = webapp.WSGIApplication([
         ('/login', LoginHandler),
@@ -615,6 +633,7 @@ def main():
         ('/pre_assign_td', PreAssignTDHandler),
         ('/assign_td', AssignTDHandler),
         ('/td_setting', TDSettingHandler),
+        ('/user_info', UserInfoHandler),
         ('/.*', IndexHandler)],
         debug=True)
     wsgiref.handlers.CGIHandler().run(application)

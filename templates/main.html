@@ -4,12 +4,10 @@
 <script type="text/javascript" src="tabber.js">
 </script>
 
-    <h2> Welcome {{username}}.  {% if msg %} {{msg}} {% endif %} </h2>
+    <h2> Welcome "{{username}}". This is the main page.  {% if msg %} {{msg}} {% endif %} </h2>
     <p>
-    You are in the system now.
-    </p> 
-    <p>
-    Below is the course and shift info.
+    Below is the course and shift table.
+    <b style="color: blue;">1 to 7 correspond to Monday to Sunday.</b>
     </p>
     <div class="tabber">
         {% for course_list in day_list %}

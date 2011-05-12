@@ -15,13 +15,17 @@
                   <td>Course Number:</td> <td><input type="text" name="cnumber"/></td>
               </tr>
               <tr> 
-                  <td>Session(s):</td> <td><input type="text" name="csessions"/></td>
+                  <td>*Session(s):</td> <td><input type="text" name="csessions"/></td>
               </tr> 
               <tr> 
                   <td>Time Duraion:</td> <td><input type="text" name="time"/></td>
               </tr> 
           </table>
-          <p>Session is text: e.g. '1234567'</p>
+          <p><b style="color: blue;">*Session(s) field should be number(s) 1 to 7
+              correspond to Monday to Sunday.</br></b>
+              e.g. session: 135, this means this course have Monday, Wednesday and 
+              Friday three sessions.
+          </p>
           
           <input type="hidden" name="loc_key" value="{{loc_key}}" />
           <input type="hidden" name="time_index" value="{{time_index}}" />
