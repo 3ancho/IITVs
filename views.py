@@ -2,6 +2,7 @@
 # Handlers....
 
 import os
+import logging
 #import datetime, logging, time
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
@@ -16,7 +17,7 @@ def noUser(handler):
    handler.session = Session()
    pkey = handler.session.get('userkey')
    if pkey == None:
-       doRender(handler, 'index.html', {})
+       #doRender(handler, 'index.html', {})
        return True 
    else:
        return False 
@@ -35,19 +36,23 @@ def doRender(handler, tname = 'index.html', values = {}):
     if tname == '/' or tname == '' or tname == None:
         tname = 'index.html'
     
-    handler.session = Session()
-    flag = True 
-    if tname == '/loginscreen.html' or tname == '/register.html' or \
-            tname =='loginscreen.html' or tname =='register.html':
-        flag = False 
+#    handler.session = Session()
+#    flag = True 
+#            tname =='loginscreen.html' or tname =='register.html':
+#        flag = False 
 
-    if handler.session.get('username') == None and flag:
+    login_or_signin = tname == '/loginscreen.html' or tname == '/register.html' 
+    
+    if noUser(handler) and not login_or_signin:
+        logging.info('oh, guest wants to go elsewhere than just login or signin')
+        # a msg should be here
         tname = 'index.html'
 
     temp = os.path.join(os.path.dirname(__file__), 'templates/' + tname)
     if not os.path.isfile(temp):
-        return False
-
+        temp = os.path.join(os.path.dirname(__file__), 'templates/not_found.html')    
+        # not_found.html should be edited.
+        
     # Make a copy of the dictionary and add basic values
     newval = dict(values)
     newval['path'] = handler.request.path
@@ -96,7 +101,15 @@ class RegisterHandler(webapp.RequestHandler):
         self.session['userkey'] = pkey
         doRender(self, 'register.html', \
             {'error' : 'Register Success! Welcome, ' + un} )
-      
+
+# BaseHandler
+class BaseHandler(webapp.RequestHandler):
+    def doRender(self, tname, values ={}):
+        pass
+
+            
+            
+# End Basehandler
 class LoginHandler(webapp.RequestHandler):
     def get(self):
         doRender(self, 'loginscreen.htm')
@@ -147,10 +160,14 @@ class LogoutHandler(webapp.RequestHandler):
         doRender(self, 'index.html', {'msg' : ' Logout successful.'} ) 
 
 class IndexHandler(webapp.RequestHandler):
+    # show the index page, if login, redirect to main page
     def get(self):
-        if doRender(self,self.request.path) :
-            return
-        doRender(self,'index.html')
+        logging.info(self.request.path)
+        doRender(self, self.request.path)
+        
+#        if doRender(self,self.request.path) :
+#            return
+#        doRender(self,'index.html')
 
 class MainHandler(webapp.RequestHandler):
     def get(self):
@@ -543,6 +560,8 @@ class TDSettingHandler(webapp.RequestHandler):
 
 class UserInfoHandler(webapp.RequestHandler):
     def get(self):
+        if noUser(self):
+            return
         self.session = Session()
         pkey = self.session.get('userkey')
         user = db.get(pkey)
