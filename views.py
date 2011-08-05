@@ -1,14 +1,13 @@
-#!/usr/bin/env python
-# Ruoran Wang IITVs
+# Ruoran Wang IITVs views:
+# Handlers....
+
 import os
-import logging
-import wsgiref.handlers
+#import datetime, logging, time
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
-from util.sessions import Session
 from google.appengine.ext import db
-from models import User, Location, Course, CSession, XY, Compact 
-
+from util.sessions import Session
+from models import *
 
 def noUser(handler):
    '''
@@ -25,13 +24,14 @@ def noUser(handler):
 def Admin():
     '''
     check if current user is admin, return true if yes.
+    Ruoran 0805: It is not needed, seems like.
     '''
     current_user = db.get(pkey)
     if current_user.admin == "False":
         doRender(self, 'main.html', {'msg' : 'Require admin previlege!'})
         return
 
-def doRender(handler, tname = 'index.html', values = { }):
+def doRender(handler, tname = 'index.html', values = {}):
     if tname == '/' or tname == '' or tname == None:
         tname = 'index.html'
     
@@ -556,31 +556,4 @@ class UserInfoHandler(webapp.RequestHandler):
                 
     def post(self):
         pass
-
-
-
-def main():
-    application = webapp.WSGIApplication([
-        ('/login', LoginHandler),
-        ('/logout', LogoutHandler),
-        ('/register', RegisterHandler),
-        ('/main', MainHandler), 
-        ('/show_user', ShowUserHandler),
-        ('/delete_user', DeleteUserHandler),
-        ('/setup', SetupHandler),
-        ('/add_location', AddLocationHandler),
-        ('/pre_course', PreCourseHandler),
-        ('/add_course', AddCourseHandler),
-        ('/td_session', TDSessionHandler),
-        ('/list_td', ListTDHandler),
-        ('/pre_assign_td', PreAssignTDHandler),
-        ('/assign_td', AssignTDHandler),
-        ('/td_setting', TDSettingHandler),
-        ('/user_info', UserInfoHandler),
-        ('/.*', IndexHandler)],
-        debug=True)
-    wsgiref.handlers.CGIHandler().run(application)
-
-if __name__ == '__main__':
-    main()
 
