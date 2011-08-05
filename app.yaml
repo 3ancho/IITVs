@@ -13,5 +13,5 @@ handlers:
   static_dir: static
 
 - url: /.*
-  script: index.py
+  script: main.py
 

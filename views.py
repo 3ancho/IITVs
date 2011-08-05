@@ -1,71 +1,14 @@
-#!/usr/bin/env python
-# Ruoran Wang IITVs
+# Ruoran Wang IITVs views:
+# Handlers....
+
 import os
 import logging
-import wsgiref.handlers
+#import datetime, logging, time
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
-from util.sessions import Session
 from google.appengine.ext import db
-
-
-# A Model for a User
-class User(db.Model):
-    username = db.StringProperty()
-    password = db.StringProperty()
-    name = db.StringProperty()
-    created = db.DateTimeProperty(auto_now=True)
-    #admin = db.BooleanProperty()
-    admin = db.StringProperty()
-    email = db.EmailProperty()
-    cwid = db.StringProperty()
-    major = db.StringProperty()
-    phone = db.PhoneNumberProperty()
-    d_hours = db.IntegerProperty()
-    a_hours = db.IntegerProperty(default = 0)
-
-class Location(db.Model):
-    rname = db.StringProperty()
-    camera = db.StringProperty()
-    size = db.StringProperty()
-
-class Course(db.Model):
-    ''' time matching pairs 
-        8:30am-9:45am 	    0
-        10:00am-11:15am     1
-        11:30am-12:40pm 	2
-        1:50pm-3:00pm 	    3
-        3:15pm-4:30pm 	    4
-        5:00pm-6:10pm 	    5
-        6:30pm-9:10pm       6
-    '''
-    created = db.DateTimeProperty(auto_now = True)
-    cname = db.StringProperty() # course name (major)
-    cnumber = db.IntegerProperty() # course number 
-    loc = db.ReferenceProperty(Location)
-    time = db.IntegerProperty() # time = [0 to 6]
-    csessions = db.StringProperty() # '1234567' 
-    #lecturer = db.StringProperty() # lecturer name
-    #start = db.TimeProperty()
-    #end = db.TimeProperty()
-
-class CSession(Course): #course session
-    td = db.ReferenceProperty(User)
-    w_day = db.StringProperty() # one digit number
-    td_list = db.ListProperty(db.Key)
-
-class XY(db.Model): # an object helps to pass values
-    x = db.StringProperty() # row: location -> location.rname
-    y = db.IntegerProperty() # column: time slot -> Ingeter
-    z = db.StringProperty() # specify a day
-    zz = db.StringProperty() # specify course_session name
-
-class Compact:
-    def __init__(self, info1, info2):
-        self.info1 = info1
-        self.info2 = info2
-
-# end of class definitions, start of helper functions
+from util.sessions import Session
+from models import *
 
 def noUser(handler):
    '''
@@ -74,7 +17,7 @@ def noUser(handler):
    handler.session = Session()
    pkey = handler.session.get('userkey')
    if pkey == None:
-       doRender(handler, 'index.html', {})
+       #doRender(handler, 'index.html', {})
        return True 
    else:
        return False 
@@ -82,29 +25,34 @@ def noUser(handler):
 def Admin():
     '''
     check if current user is admin, return true if yes.
+    Ruoran 0805: It is not needed, seems like.
     '''
     current_user = db.get(pkey)
     if current_user.admin == "False":
         doRender(self, 'main.html', {'msg' : 'Require admin previlege!'})
         return
 
-def doRender(handler, tname = 'index.html', values = { }):
+def doRender(handler, tname = 'index.html', values = {}):
     if tname == '/' or tname == '' or tname == None:
         tname = 'index.html'
     
-    handler.session = Session()
-    flag = True 
-    if tname == '/loginscreen.html' or tname == '/register.html' or \
-            tname =='loginscreen.html' or tname =='register.html':
-        flag = False 
+#    handler.session = Session()
+#    flag = True 
+#            tname =='loginscreen.html' or tname =='register.html':
+#        flag = False 
 
-    if handler.session.get('username') == None and flag:
+    login_or_signin = tname == '/loginscreen.html' or tname == '/register.html' 
+    
+    if noUser(handler) and not login_or_signin:
+        logging.info('oh, guest wants to go elsewhere than just login or signin')
+        # a msg should be here
         tname = 'index.html'
 
     temp = os.path.join(os.path.dirname(__file__), 'templates/' + tname)
     if not os.path.isfile(temp):
-        return False
-
+        temp = os.path.join(os.path.dirname(__file__), 'templates/not_found.html')    
+        # not_found.html should be edited.
+        
     # Make a copy of the dictionary and add basic values
     newval = dict(values)
     newval['path'] = handler.request.path
@@ -153,7 +101,15 @@ class RegisterHandler(webapp.RequestHandler):
         self.session['userkey'] = pkey
         doRender(self, 'register.html', \
             {'error' : 'Register Success! Welcome, ' + un} )
-      
+
+# BaseHandler
+class BaseHandler(webapp.RequestHandler):
+    def doRender(self, tname, values ={}):
+        pass
+
+            
+            
+# End Basehandler
 class LoginHandler(webapp.RequestHandler):
     def get(self):
         doRender(self, 'loginscreen.htm')
@@ -204,10 +160,14 @@ class LogoutHandler(webapp.RequestHandler):
         doRender(self, 'index.html', {'msg' : ' Logout successful.'} ) 
 
 class IndexHandler(webapp.RequestHandler):
+    # show the index page, if login, redirect to main page
     def get(self):
-        if doRender(self,self.request.path) :
-            return
-        doRender(self,'index.html')
+        logging.info(self.request.path)
+        doRender(self, self.request.path)
+        
+#        if doRender(self,self.request.path) :
+#            return
+#        doRender(self,'index.html')
 
 class MainHandler(webapp.RequestHandler):
     def get(self):
@@ -600,6 +560,8 @@ class TDSettingHandler(webapp.RequestHandler):
 
 class UserInfoHandler(webapp.RequestHandler):
     def get(self):
+        if noUser(self):
+            return
         self.session = Session()
         pkey = self.session.get('userkey')
         user = db.get(pkey)
@@ -613,31 +575,4 @@ class UserInfoHandler(webapp.RequestHandler):
                 
     def post(self):
         pass
-
-
-
-def main():
-    application = webapp.WSGIApplication([
-        ('/login', LoginHandler),
-        ('/logout', LogoutHandler),
-        ('/register', RegisterHandler),
-        ('/main', MainHandler), 
-        ('/show_user', ShowUserHandler),
-        ('/delete_user', DeleteUserHandler),
-        ('/setup', SetupHandler),
-        ('/add_location', AddLocationHandler),
-        ('/pre_course', PreCourseHandler),
-        ('/add_course', AddCourseHandler),
-        ('/td_session', TDSessionHandler),
-        ('/list_td', ListTDHandler),
-        ('/pre_assign_td', PreAssignTDHandler),
-        ('/assign_td', AssignTDHandler),
-        ('/td_setting', TDSettingHandler),
-        ('/user_info', UserInfoHandler),
-        ('/.*', IndexHandler)],
-        debug=True)
-    wsgiref.handlers.CGIHandler().run(application)
-
-if __name__ == '__main__':
-    main()
 
