@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # Ruoran Wang IITVs
 
+import logging
 import wsgiref.handlers
 from google.appengine.ext import webapp
 from views import *
@@ -25,6 +26,7 @@ def main():
         ('/assign_td', AssignTDHandler),
         ('/td_setting', TDSettingHandler),
         ('/user_info', UserInfoHandler),
+        ('/jinja2', Jinja2Handler),
         ('/.*', IndexHandler)],
         debug=True)
     wsgiref.handlers.CGIHandler().run(application)

@@ -3,74 +3,102 @@
 
 import os
 import logging
-#import datetime, logging, time
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 from google.appengine.ext import db
 from util.sessions import Session
 from models import *
 
-def noUser(handler):
-   '''
-   For Each <inside> Handler, noUser check is needed
-   '''
-   handler.session = Session()
-   pkey = handler.session.get('userkey')
-   if pkey == None:
-       #doRender(handler, 'index.html', {})
-       return True 
-   else:
-       return False 
+# BaseHandler
+class BaseHandler(webapp.RequestHandler):
+    def guest(self):
+       '''
+       For every page,except login and register, guest check is needed.
+       If not member, redirect to home.
+       '''
+       self.session = Session()
+       pkey = self.session.get('userkey')
+       if pkey == None:
+           return True 
+       else:
+           return False
 
-def Admin():
+    def doRender(self, tname = 'index.html', values = {}):
+        if tname == '/' or tname == '' or tname == None:
+            tname = 'index.html' # this block is required, as path is None.
+    
+        login_or_signin = tname == '/loginscreen.html' or tname == '/register.html' 
+
+        if self.guest() and not login_or_signin:
+            logging.debug('guest want to go !login_or_signin, redirect')
+            # a msg should be here
+            tname = 'index.html'
+   
+
+        temp = os.path.join(os.path.dirname(__file__), 'templates/' + tname)
+        if not os.path.isfile(temp):
+            temp = os.path.join(os.path.dirname(__file__), 'templates/not_found.html')    
+            # not_found.html should be edited.
+            
+        # Make a copy of the dictionary and add basic values
+        newval = dict(values)
+        newval['path'] = self.request.path
+        if 'username' in self.session:
+            newval['username'] = self.session['username']
+        admin = self.session.get('admin')
+        if admin != 'False':
+            newval['admin'] = admin
+        
+        outstr = template.render(temp, newval)
+        self.response.out.write(outstr)
+        return True
+            
+# End Basehandler
+
+def admin(handler):
     '''
     check if current user is admin, return true if yes.
     Ruoran 0805: It is not needed, seems like.
     '''
     current_user = db.get(pkey)
     if current_user.admin == "False":
-        doRender(self, 'main.html', {'msg' : 'Require admin previlege!'})
+        self.doRender( 'main.html', {'msg' : 'Require admin previlege!'})
         return
 
-def doRender(handler, tname = 'index.html', values = {}):
-    if tname == '/' or tname == '' or tname == None:
-        tname = 'index.html'
-    
-#    handler.session = Session()
-#    flag = True 
-#            tname =='loginscreen.html' or tname =='register.html':
-#        flag = False 
-
-    login_or_signin = tname == '/loginscreen.html' or tname == '/register.html' 
-    
-    if noUser(handler) and not login_or_signin:
-        logging.info('oh, guest wants to go elsewhere than just login or signin')
-        # a msg should be here
-        tname = 'index.html'
-
-    temp = os.path.join(os.path.dirname(__file__), 'templates/' + tname)
-    if not os.path.isfile(temp):
-        temp = os.path.join(os.path.dirname(__file__), 'templates/not_found.html')    
-        # not_found.html should be edited.
-        
-    # Make a copy of the dictionary and add basic values
-    newval = dict(values)
-    newval['path'] = handler.request.path
-    if 'username' in handler.session:
-        newval['username'] = handler.session['username']
-    admin = handler.session.get('admin')
-    if admin != 'False':
-        newval['admin'] = admin
-    
-    outstr = template.render(temp, newval)
-    handler.response.out.write(outstr)
-    return True
+#def doRender(handler, tname , values = {}):
+#    if tname == '/' or tname == '' or tname == None:
+#        tname = 'index.html' # this block is required, as path is None.
+#
+#    login_or_signin = tname == '/loginscreen.html' or tname == '/register.html' 
+#    
+#    if guest(handler) and not login_or_signin:
+#        logging.info('oh, guest wants to go elsewhere than just login or signin')
+#        # a msg should be here
+#        tname = 'index.html'
+#
+#    temp = os.path.join(os.path.dirname(__file__), 'templates/' + tname)
+#    if not os.path.isfile(temp):
+#        temp = os.path.join(os.path.dirname(__file__), 'templates/not_found.html')    
+#        # not_found.html should be edited.
+#        
+#    # Make a copy of the dictionary and add basic values
+#    newval = dict(values)
+#    newval['path'] = handler.request.path
+#    if 'username' in handler.session:
+#        newval['username'] = handler.session['username']
+#    admin = handler.session.get('admin')
+#    if admin != 'False':
+#        newval['admin'] = admin
+#    
+#    outstr = template.render(temp, newval)
+#    handler.response.out.write(outstr)
+#    return True
 
 # end of helper functions, start of Handlers
 
-class RegisterHandler(webapp.RequestHandler):
+class RegisterHandler(BaseHandler):
     def get(self):
-        doRender(self, 'register.html') 
+        self.doRender( 'register.html') 
 
     def post(self):
         self.session = Session()
@@ -79,8 +107,7 @@ class RegisterHandler(webapp.RequestHandler):
         pw = self.request.get("password")
 
         if pw == '' or un == '' or n == '':
-            doRender(
-                    self,
+            self.doRender(
                     'register.html',
                     {'error' : 'Please fill in all fields'} )
             return
@@ -89,8 +116,7 @@ class RegisterHandler(webapp.RequestHandler):
         results = que.fetch(limit = 1)
 
         if len(results) > 0:
-            doRender(
-                    self,
+            self.doRender(
                     'register.html',
                     {'error' : 'Username already exists'} )
             return
@@ -99,20 +125,12 @@ class RegisterHandler(webapp.RequestHandler):
         pkey = newuser.put()
         self.session['username'] = un 
         self.session['userkey'] = pkey
-        doRender(self, 'register.html', \
+        self.doRender( 'register.html', \
             {'error' : 'Register Success! Welcome, ' + un} )
 
-# BaseHandler
-class BaseHandler(webapp.RequestHandler):
-    def doRender(self, tname, values ={}):
-        pass
-
-            
-            
-# End Basehandler
-class LoginHandler(webapp.RequestHandler):
+class LoginHandler(BaseHandler):
     def get(self):
-        doRender(self, 'loginscreen.htm')
+        self.doRender('loginscreen.html')
     
     def post(self):
         self.session = Session()
@@ -124,8 +142,7 @@ class LoginHandler(webapp.RequestHandler):
         self.session.delete_item('admin')
 
         if pw == '' or un == '':
-            doRender(
-                    self,
+            self.doRender(
                     'loginscreen.html',
                     {'error': 'Please specify Username and Password'} )
             return
@@ -143,35 +160,30 @@ class LoginHandler(webapp.RequestHandler):
             self.session['username'] = un
             self.session['admin'] = user.admin
             self.redirect('/main') 
-            #doRender(self,'main.html', {} ) # if ok, go to main.html (logged in)
+            #self.doRender('main.html', {} ) # if ok, go to main.html (logged in)
         else:
-            doRender(
-                    self,
+            self.doRender(
                     'loginscreen.html',
                     {'error' : 'Username or Password wrong' } )
 
-class LogoutHandler(webapp.RequestHandler):
+class LogoutHandler(BaseHandler):
     def get(self):
-        if noUser(self):
+        if guest(self):
             return
         self.session.delete_item('username')
         self.session.delete_item('userkey')
         self.session.delete_item('admin')
-        doRender(self, 'index.html', {'msg' : ' Logout successful.'} ) 
+        self.doRender( 'index.html', {'msg' : ' Logout successful.'} ) 
 
-class IndexHandler(webapp.RequestHandler):
+class IndexHandler(BaseHandler):
     # show the index page, if login, redirect to main page
     def get(self):
-        logging.info(self.request.path)
-        doRender(self, self.request.path)
+        logging.debug(self.request.path)
+        self.doRender(self.request.path)
         
-#        if doRender(self,self.request.path) :
-#            return
-#        doRender(self,'index.html')
-
-class MainHandler(webapp.RequestHandler):
+class MainHandler(BaseHandler):
     def get(self):
-        if noUser(self):
+        if self.guest():
             return
         
         que = db.Query(Location)
@@ -216,28 +228,28 @@ class MainHandler(webapp.RequestHandler):
             day_list.append(course_list) 
             # end for day in days
         
-        doRender(self, 'main.html', {'day_list' : day_list})
+        self.doRender('main.html', {'day_list' : day_list})
 
 
-class ShowUserHandler(webapp.RequestHandler):
+class ShowUserHandler(BaseHandler):
     def get(self):
-        if noUser(self):
+        if guest(self):
             return
         
         pkey = self.session['userkey']
         current_user = db.get(pkey)
         if current_user.admin == "True":
-            doRender(self, 'show_user.html', { })
+            self.doRender( 'show_user.html', { })
         else:
-            doRender(self, 'main.html', {'msg' : 'Require admin previlege!'})
+            self.doRender( 'main.html', {'msg' : 'Require admin previlege!'})
 
     def post(self):
-        if noUser(self):
+        if guest(self):
             return
         pkey = self.session['userkey']
         current_user = db.get(pkey)
         if current_user.admin == "False":
-            doRender(self, 'main.html', {'msg' : 'Require admin previlege!'})
+            self.doRender( 'main.html', {'msg' : 'Require admin previlege!'})
             return
 
         que = db.Query(User)
@@ -245,32 +257,32 @@ class ShowUserHandler(webapp.RequestHandler):
         if self.request.get('show_admin') == 'True': # if this will show admin
             admin = que.filter('admin =', 'True')
             admin = admin.fetch(limit = 100) 
-            doRender(self, 'show_user.html', {'user_list' : admin } )
+            self.doRender( 'show_user.html', {'user_list' : admin } )
             return
         else:
             user = que.filter('admin =', 'False')
             user = user.fetch(limit = 500)
-            doRender(self, 'show_user.html', {'user_list' : user } )
+            self.doRender( 'show_user.html', {'user_list' : user } )
             return
 
-class DeleteUserHandler(webapp.RequestHandler):
+class DeleteUserHandler(BaseHandler):
     def post(self):
-        if noUser(self):
+        if guest(self):
             return
         pkey = self.session['userkey']
         current_user = db.get(pkey)
         
         if current_user.admin == "False":
-            doRender(self, 'main.html', {'msg' : 'Require admin previlege!'})
+            self.doRender( 'main.html', {'msg' : 'Require admin previlege!'})
             return
 
         delete_list = self.request.get_all('key_to_delete')
         ''' # Testing!
-        doRender(self, 'test.html', {'msg' : first[0], 'msg2': str(len(first))})
+        self.doRender( 'test.html', {'msg' : first[0], 'msg2': str(len(first))})
         return
         '''
         if len(delete_list) == 0:
-            doRender(self, 'show_user.html', {})
+            self.doRender( 'show_user.html', {})
             return
 
         for item in delete_list:
@@ -278,14 +290,14 @@ class DeleteUserHandler(webapp.RequestHandler):
             result = que.fetch(limit = 1)
             result[0].delete()
 
-        doRender(self, 'show_user.html', {})
+        self.doRender( 'show_user.html', {})
 
-class SetupHandler(webapp.RequestHandler):
+class SetupHandler(BaseHandler):
     '''
     Correspond to (setup.html)
     '''
     def get(self):
-        if noUser(self):
+        if guest(self):
             return
         que = db.Query(Location)
         location_list = que.fetch(limit = 500) # number of rows
@@ -307,12 +319,12 @@ class SetupHandler(webapp.RequestHandler):
 
         que_recent = db.Query(CSession).order('-created')
         cs_list = que_recent.fetch(limit = 6)
-        doRender(self, 'setup.html', {'course_list' : c_list, 'csession_list' : cs_list}) 
+        self.doRender( 'setup.html', {'course_list' : c_list, 'csession_list' : cs_list}) 
 
-class AddLocationHandler(webapp.RequestHandler):
+class AddLocationHandler(BaseHandler):
     
     def post(self):
-        if noUser(self):
+        if guest(self):
             return
         pkey = self.session['userkey']
         current_user = db.get(pkey)
@@ -326,21 +338,21 @@ class AddLocationHandler(webapp.RequestHandler):
 
         self.redirect('/setup')
 
-class PreCourseHandler(webapp.RequestHandler):
+class PreCourseHandler(BaseHandler):
     def post(self):
-        if noUser(self):
+        if guest(self):
             return
         loc_key = self.request.get('row')
         time_index = int(self.request.get('column')) 
-        doRender(self, 'add_course.html', \
+        self.doRender( 'add_course.html', \
                 {'loc_key' : loc_key, 'time_index' : time_index} )
 
-class AddCourseHandler(webapp.RequestHandler):
+class AddCourseHandler(BaseHandler):
     '''
     Add both Course and CSession
     '''
     def post(self):
-        if noUser(self):
+        if guest(self):
             return
         location_key = db.Key(self.request.get('loc_key'))
         time_index = int(self.request.get('time_index'))
@@ -356,7 +368,7 @@ class AddCourseHandler(webapp.RequestHandler):
             que_test = db.Query(CSession).filter('loc =', location_key).filter('time =', time_index).filter('w_day =', i)
             result_test = que_test.fetch(limit = 1)
             if len(result_test) != 0:
-                doRender(self,'setup.html', {'msg': 'Session Conflict'})
+                self.doRender('setup.html', {'msg': 'Session Conflict'})
                 return
 
         for i in t_csessions:
@@ -370,12 +382,12 @@ class AddCourseHandler(webapp.RequestHandler):
         new_course.put()
         self.redirect('/setup')
 
-class TDSessionHandler(webapp.RequestHandler):
+class TDSessionHandler(BaseHandler):
     def get(self):
         '''
         Disply 7 Sheet of data. Display Course_Sessions.
         '''
-        if noUser(self):
+        if guest(self):
             return
         que = db.Query(Location)
         location_list = que.fetch(limit = 500) # number of rows
@@ -419,16 +431,16 @@ class TDSessionHandler(webapp.RequestHandler):
             day_list.append(course_list) 
             # end for day in days
         
-        doRender(self, 'td_session.html', {'day_list' : day_list})
+        self.doRender( 'td_session.html', {'day_list' : day_list})
 
-class ListTDHandler(webapp.RequestHandler):
+class ListTDHandler(BaseHandler):
     def post(self):
         '''
         This may combined with TDSessionHandler
         When TD select a desired session, TD's key(current User key)
         will be added to this session's td_list.
         '''
-        if noUser(self):
+        if guest(self):
             return
         self.session = Session()
         user_key = self.session['userkey'] 
@@ -436,7 +448,7 @@ class ListTDHandler(webapp.RequestHandler):
         cs_key = db.Key(self.request.get('cs_key'))
         cs = db.get(cs_key) # Course Session Obj
         if user_key in cs.td_list:
-            doRender(self, 'td_session.html', {'msg': \
+            self.doRender( 'td_session.html', {'msg': \
                     'you have selected this session'})
             return
 
@@ -445,12 +457,12 @@ class ListTDHandler(webapp.RequestHandler):
 
         self.redirect('/td_session')
 
-class PreAssignTDHandler(webapp.RequestHandler):
+class PreAssignTDHandler(BaseHandler):
     def get(self):
         '''
         Disply 7 sheets. Display Course_Sessions.
         '''
-        if noUser(self):
+        if guest(self):
             return
         que = db.Query(Location)
         location_list = que.fetch(limit = 500) # number of rows
@@ -494,13 +506,13 @@ class PreAssignTDHandler(webapp.RequestHandler):
             day_list.append(course_list) 
             # end for day in days
         
-        doRender(self, 'pre_assign_td.html', {'day_list' : day_list})
+        self.doRender( 'pre_assign_td.html', {'day_list' : day_list})
 
     def post(self):
         '''
         When Clicked, a td_list of that session will displayed.
         '''
-        if noUser(self):
+        if guest(self):
             return
          
         cs_key = db.Key(self.request.get('cs_key'))
@@ -512,9 +524,9 @@ class PreAssignTDHandler(webapp.RequestHandler):
             user = db.get(key) # User Object
             td_list.append(user)
 
-        doRender(self, 'show_td_list.html', {'td_list' : td_list, 'cs_key' : cs_key})
+        self.doRender( 'show_td_list.html', {'td_list' : td_list, 'cs_key' : cs_key})
 
-class AssignTDHandler(webapp.RequestHandler):
+class AssignTDHandler(BaseHandler):
     def post(self):
         td_key = db.Key( self.request.get('td_key') )
         cs_key = db.Key( self.request.get('cs_key') )
@@ -527,16 +539,16 @@ class AssignTDHandler(webapp.RequestHandler):
         cs.put()
         td.put()
        
-        doRender(self, 'assign_ok.html', {'td': td.name, 'cs': cs.cname, 'day': cs.w_day} ) 
+        self.doRender( 'assign_ok.html', {'td': td.name, 'cs': cs.cname, 'day': cs.w_day} ) 
 
-class TDSettingHandler(webapp.RequestHandler):
+class TDSettingHandler(BaseHandler):
     def get(self):
-        if noUser(self):
+        if guest(self):
             return
         self.session = Session()
         key = self.session.get('userkey')
         user = db.get(key) 
-        doRender(self, 'td_setting.html', {'u': user})
+        self.doRender( 'td_setting.html', {'u': user})
 
     def post(self):
         self.session = Session()
@@ -556,11 +568,11 @@ class TDSettingHandler(webapp.RequestHandler):
         user.d_hours = d_hours
         user.put()
 
-        doRender(self, 'td_setting.html', {'msg' : 'info updated'} )
+        self.doRender( 'td_setting.html', {'msg' : 'info updated'} )
 
-class UserInfoHandler(webapp.RequestHandler):
+class UserInfoHandler(BaseHandler):
     def get(self):
-        if noUser(self):
+        if guest(self):
             return
         self.session = Session()
         pkey = self.session.get('userkey')
@@ -569,10 +581,13 @@ class UserInfoHandler(webapp.RequestHandler):
         
         que = db.Query(CSession).filter('td =', pkey) 
         session_list = que.fetch(limit = 100)
-        doRender(self, 'user_info.html', {'sessions' : session_list, \
+        self.doRender( 'user_info.html', {'sessions' : session_list, \
                 'length': str(len(session_list)), \
                 'name': name})
                 
     def post(self):
         pass
 
+class Jinja2Handler(BaseHandler):
+    def get(self):
+        self.doRender('Jinja2.html', {'name': 'ruoran', 'pet': 'nini'}) 
