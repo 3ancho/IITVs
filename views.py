@@ -26,14 +26,22 @@ class BaseHandler(webapp.RequestHandler):
     def doRender(self, tname = 'index.html', values = {}):
         if tname == '/' or tname == '' or tname == None:
             tname = 'index.html' # this block is required, as path is None.
-    
-        login_or_signin = tname == '/loginscreen.html' or tname == '/register.html' 
+
+        if tname[0] == '/':
+            tname = tname[1:] 
+        
+        login_or_signin = tname == 'loginscreen.html' \
+                or tname == 'register.html' \
+#                or tname == 'loginscreen.html'\
+#                or tname == 'register.html'\
+#                or tname =='/login' \
+#                or tname =='/register' 
+        logging.debug('It is login or signin, tname is:' + tname)
 
         if self.guest() and not login_or_signin:
             logging.debug('guest want to go !login_or_signin, redirect')
             # a msg should be here
             tname = 'index.html'
-   
 
         temp = os.path.join(os.path.dirname(__file__), 'templates/' + tname)
         if not os.path.isfile(temp):
@@ -133,18 +141,19 @@ class LoginHandler(BaseHandler):
         self.doRender('loginscreen.html')
     
     def post(self):
+        logging.debug('post')
         self.session = Session()
-        un = self.request.get('username')
-        pw = self.request.get('password')
+        un = self.request.get('username') # hello   
+        pw = self.request.get('password') # zhu
 
         self.session.delete_item('username')
         self.session.delete_item('userkey')
         self.session.delete_item('admin')
 
         if pw == '' or un == '':
-            self.doRender(
-                    'loginscreen.html',
+            self.doRender('loginscreen.html', \
                     {'error': 'Please specify Username and Password'} )
+            logging.debug('login handler with no login info')
             return
 
         que = db.Query(User)
@@ -168,7 +177,7 @@ class LoginHandler(BaseHandler):
 
 class LogoutHandler(BaseHandler):
     def get(self):
-        if guest(self):
+        if self.guest():
             return
         self.session.delete_item('username')
         self.session.delete_item('userkey')
@@ -178,7 +187,7 @@ class LogoutHandler(BaseHandler):
 class IndexHandler(BaseHandler):
     # show the index page, if login, redirect to main page
     def get(self):
-        logging.debug(self.request.path)
+        logging.debug('went throught Index Handler, with path:')
         self.doRender(self.request.path)
         
 class MainHandler(BaseHandler):
@@ -233,7 +242,7 @@ class MainHandler(BaseHandler):
 
 class ShowUserHandler(BaseHandler):
     def get(self):
-        if guest(self):
+        if self.guest():
             return
         
         pkey = self.session['userkey']
@@ -244,7 +253,7 @@ class ShowUserHandler(BaseHandler):
             self.doRender( 'main.html', {'msg' : 'Require admin previlege!'})
 
     def post(self):
-        if guest(self):
+        if self.guest():
             return
         pkey = self.session['userkey']
         current_user = db.get(pkey)
@@ -267,7 +276,7 @@ class ShowUserHandler(BaseHandler):
 
 class DeleteUserHandler(BaseHandler):
     def post(self):
-        if guest(self):
+        if self.guest():
             return
         pkey = self.session['userkey']
         current_user = db.get(pkey)
@@ -297,7 +306,7 @@ class SetupHandler(BaseHandler):
     Correspond to (setup.html)
     '''
     def get(self):
-        if guest(self):
+        if self.guest():
             return
         que = db.Query(Location)
         location_list = que.fetch(limit = 500) # number of rows
@@ -324,7 +333,7 @@ class SetupHandler(BaseHandler):
 class AddLocationHandler(BaseHandler):
     
     def post(self):
-        if guest(self):
+        if self.guest():
             return
         pkey = self.session['userkey']
         current_user = db.get(pkey)
@@ -340,7 +349,7 @@ class AddLocationHandler(BaseHandler):
 
 class PreCourseHandler(BaseHandler):
     def post(self):
-        if guest(self):
+        if self.guest():
             return
         loc_key = self.request.get('row')
         time_index = int(self.request.get('column')) 
@@ -352,7 +361,7 @@ class AddCourseHandler(BaseHandler):
     Add both Course and CSession
     '''
     def post(self):
-        if guest(self):
+        if self.guest():
             return
         location_key = db.Key(self.request.get('loc_key'))
         time_index = int(self.request.get('time_index'))
@@ -387,7 +396,7 @@ class TDSessionHandler(BaseHandler):
         '''
         Disply 7 Sheet of data. Display Course_Sessions.
         '''
-        if guest(self):
+        if self.guest():
             return
         que = db.Query(Location)
         location_list = que.fetch(limit = 500) # number of rows
@@ -440,7 +449,7 @@ class ListTDHandler(BaseHandler):
         When TD select a desired session, TD's key(current User key)
         will be added to this session's td_list.
         '''
-        if guest(self):
+        if self.guest():
             return
         self.session = Session()
         user_key = self.session['userkey'] 
@@ -462,7 +471,7 @@ class PreAssignTDHandler(BaseHandler):
         '''
         Disply 7 sheets. Display Course_Sessions.
         '''
-        if guest(self):
+        if self.guest():
             return
         que = db.Query(Location)
         location_list = que.fetch(limit = 500) # number of rows
@@ -512,7 +521,7 @@ class PreAssignTDHandler(BaseHandler):
         '''
         When Clicked, a td_list of that session will displayed.
         '''
-        if guest(self):
+        if self.guest():
             return
          
         cs_key = db.Key(self.request.get('cs_key'))
@@ -543,7 +552,7 @@ class AssignTDHandler(BaseHandler):
 
 class TDSettingHandler(BaseHandler):
     def get(self):
-        if guest(self):
+        if self.guest():
             return
         self.session = Session()
         key = self.session.get('userkey')
@@ -572,7 +581,7 @@ class TDSettingHandler(BaseHandler):
 
 class UserInfoHandler(BaseHandler):
     def get(self):
-        if guest(self):
+        if self.guest():
             return
         self.session = Session()
         pkey = self.session.get('userkey')

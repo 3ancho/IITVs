@@ -6,7 +6,6 @@ import wsgiref.handlers
 from google.appengine.ext import webapp
 from views import *
 
-
 def main():
     logging.getLogger().setLevel(logging.DEBUG)
     application = webapp.WSGIApplication([
