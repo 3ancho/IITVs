@@ -3,6 +3,7 @@
 
 import os
 import logging
+import hashlib
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
 from google.appengine.ext import db
@@ -119,12 +120,12 @@ class RegisterHandler(BaseHandler):
             result = que.fetch(limit = 1)
             if len(result) > 0:
                 self.doRender('register.html', \
-                     {'form': form, 'msg': 'Username exitst'})
+                     {'form': form, 'msg': 'Username exist'})
                 return
-
+            m = hashlib.sha224(form.password.data)
             newuser = User(name = form.name.data, \
                     username = form.username.data, \
-                    password = form.password.data, \
+                    password = m.hexdigest(), \
                     admin = False)
 
             pkey = newuser.put()
@@ -177,10 +178,10 @@ class LoginHandler(BaseHandler):
                     {'error': 'Please specify Username and Password'} )
             logging.debug('login handler with no login info')
             return
-
+        m = hashlib.sha224(pw)
         que = db.Query(User)
         que = que.filter('username =', un)
-        que = que.filter('password =', pw)
+        que = que.filter('password =', m.hexdigest())
         # above two may combine
 
         results = que.fetch(limit = 1)
