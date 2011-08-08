@@ -36,11 +36,8 @@
         {% endfor %}
     </table>
 
-    <a href="add_location.html">Add Classroom</a> 
-    <!-- add_location.html, means show add_location.html --> 
-    </br>   
-    <a href="/setup">Display / Refresh</a> 
-    <!-- /show_setting (GET), means show setting.html -->    
+    <button onclick="window.location='/add_location'">Add Classroom</button>
+    <button onclick="window.location='/setup'">Page Refresh</button> 
 
     <h3> Recent added course-session(s) </h3>  
     {% for session in csession_list %}

@@ -4,21 +4,44 @@
       <p>
       Please enter Classroom information. 
       </p>
-      
-      <form method="post" action="/add_location">
+      {% if msg %}
+        {{msg}}
+      {% endif %}      
+      <form method="post" action="">
           <table>
               <tr>
-                  <td>Room Name:</td> <td><input type="text" name="name"/></td>
-              </tr>
+                  <td>Room Name:</td> <td>{{form.rname}}</td> 
+                  {% if form.rname.errors %} 
+                      <div class="form_errors">
+                      {% for error in form.rname.errors %}
+                          <td> {{error}} </td>
+                      {% endfor %} 
+                      </div>
+                  {% endif %}
+              </tr> 
               <tr>
-                  <td>Camera:</td> <td><input type="text" name="camera"/></td>
-              </tr>
-              <tr> 
-                  <td>Size:</td> <td><input type="text" name="size"/></td>
+                  <td>Camera(s):</td> <td>{{form.camera}}</td> 
+                  {% if form.camera.errors %} 
+                      <div class="form_errors">
+                      {% for error in form.camera.errors %}
+                          <td> {{error}} </td>
+                      {% endfor %} 
+                      </div>
+                  {% endif %}
+              </tr> 
+              <tr>
+                  <td>Room Size:</td> <td>{{form.size}}</td> 
+                  {% if form.size.errors %} 
+                      <div class="form_errors">
+                      {% for error in form.size.errors %}
+                          <td> {{error}} </td>
+                      {% endfor %} 
+                      </div>
+                  {% endif %}
               </tr> 
           </table>
-          <input type="submit" value="Add"/> 
+          <input type="submit" value="Add"/>
           <input type="submit" value="Cancel" /
-              onclick="window.location='/'; return false;"/>
+              onclick="window.location='/add_location'; return false;"/>
       </form>
 {% endblock %}

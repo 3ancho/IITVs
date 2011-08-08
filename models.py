@@ -1,13 +1,17 @@
 from google.appengine.ext import db
 
+#from wtforms.ext.appengine.db import model_form
+from wtforms import * 
+from wtforms.validators import *
+
 # A Model for a User
 class User(db.Model):
     username = db.StringProperty()
     password = db.StringProperty()
+    confirm = db.StringProperty()
     name = db.StringProperty()
     created = db.DateTimeProperty(auto_now=True)
-    #admin = db.BooleanProperty()
-    admin = db.StringProperty()
+    admin = db.BooleanProperty()
     email = db.EmailProperty()
     cwid = db.StringProperty()
     major = db.StringProperty()
@@ -15,10 +19,27 @@ class User(db.Model):
     d_hours = db.IntegerProperty()
     a_hours = db.IntegerProperty(default = 0)
 
+class UserForm(Form):
+    name = TextField('Full Name', [required()])
+    username = TextField('User Name', [Length(min=3, max=30)])
+    password = PasswordField('Password', \
+            [ Required(), \
+              EqualTo('confirm', message='Passwords mush match'), \
+              Length(min=3, max=40) ]) 
+    confirm = PasswordField('Repeat Password')
+
 class Location(db.Model):
-    rname = db.StringProperty()
-    camera = db.StringProperty()
-    size = db.StringProperty()
+    rname = db.StringProperty(required=True)
+    camera = db.IntegerProperty(default = 1)
+    size = db.IntegerProperty()
+
+class LocationForm(Form):
+    rname = TextField('Room Name', [Length(min=2, max=30)])
+    camera = IntegerField('Camera(s)', \
+            [NumberRange(min=0, max=3, \
+            message=('Value should be 0 to 3'))])
+    size = IntegerField('Room Size', \
+            [NumberRange(min=0, max=400)])
 
 class Course(db.Model):
     ''' time matching pairs 
@@ -37,16 +58,17 @@ class Course(db.Model):
     time = db.IntegerProperty() # time = [0 to 6]
     csessions = db.StringProperty() # '1234567' 
 
+
 class CSession(Course): #course session
     td = db.ReferenceProperty(User)
     w_day = db.StringProperty() # one digit number
     td_list = db.ListProperty(db.Key)
 
-class XY(db.Model): # an object helps to pass values
+class Cell(db.Model): # an object helps to pass values
     x = db.StringProperty() # row: location -> location.rname
     y = db.IntegerProperty() # column: time slot -> Ingeter
-    z = db.StringProperty() # specify a day
-    zz = db.StringProperty() # specify course_session name
+#    z = db.StringProperty() # specify a day
+#    zz = db.StringProperty() # specify course_session name
 
 class Compact:
     def __init__(self, info1, info2):

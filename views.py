@@ -9,6 +9,7 @@ from google.appengine.ext import db
 from util.sessions import Session
 from models import *
 
+
 # BaseHandler
 class BaseHandler(webapp.RequestHandler):
     def guest(self):
@@ -106,10 +107,36 @@ def admin(handler):
 
 class RegisterHandler(BaseHandler):
     def get(self):
-        self.doRender( 'register.html') 
+        form = UserForm()
+        self.doRender('register.html', {'form': form} ) 
 
     def post(self):
         self.session = Session()
+
+        form = UserForm(self.request.POST)
+        if form.validate():
+            que = db.Query(User).filter('username =', form.username.data) 
+            result = que.fetch(limit = 1)
+            if len(result) > 0:
+                self.doRender('register.html', \
+                     {'form': form, 'msg': 'Username exitst'})
+                return
+
+            newuser = User(name = form.name.data, \
+                    username = form.username.data, \
+                    password = form.password.data, \
+                    admin = False)
+
+            pkey = newuser.put()
+            self.session['username'] = form.username.data 
+            self.session['userkey'] = pkey
+            self.doRender( 'register.html', \
+                    {'form': form, \
+                    'msg' : 'Register Success! Welcome, '\
+                    + form.username.data} )
+        else:
+            self.doRender('register.html', {'form': form}) 
+        '''
         n = self.request.get("name")
         un = self.request.get("username")
         pw = self.request.get("password")
@@ -129,12 +156,7 @@ class RegisterHandler(BaseHandler):
                     {'error' : 'Username already exists'} )
             return
         #if success, create new user
-        newuser = User(name = n, username = un, password = pw, admin = "False")
-        pkey = newuser.put()
-        self.session['username'] = un 
-        self.session['userkey'] = pkey
-        self.doRender( 'register.html', \
-            {'error' : 'Register Success! Welcome, ' + un} )
+        ''' 
 
 class LoginHandler(BaseHandler):
     def get(self):
@@ -216,8 +238,8 @@ class MainHandler(BaseHandler):
                 test = que_course.fetch(limit = 2) 
                 if len(test) == 0: # no course in this location
                     for item in time_list:
-                        object_xy = XY(x = location.rname, y = item)
-                        row_list.append( object_xy ) #cell, operand: Object XY()
+                        object_xy = Cell(x = location.rname, y = item)
+                        row_list.append( object_xy ) #cell, operand: Object Cell()
                 else:
 
                     for item in time_list:
@@ -229,8 +251,8 @@ class MainHandler(BaseHandler):
                             info = Compact(info1 = session, info2 = td) 
                             row_list.append( info ) #cell, operand: Session
                         else:
-                            #object_xy = XY(x = location.rname, y = item)
-                            row_list.append( '' ) #cell, oerand: Object XY() 
+                            #object_xy = Cell(x = location.rname, y = item)
+                            row_list.append( '' ) #cell, oerand: Object Cell() 
                                                 
                 course_list.append(row_list)
                 # end for location in location_list
@@ -309,10 +331,10 @@ class SetupHandler(BaseHandler):
         if self.guest():
             return
         que = db.Query(Location)
-        location_list = que.fetch(limit = 500) # number of rows
+        location_list = que.fetch(limit = 200) # number of rows(locations)
 
         c_list = [] # list of row_list
-        time_list = [0,1,2,3,4,5,6]
+        time_list = [0,1,2,3,4,5,6] # displayed as columns
 
         for location in location_list:
             row_list = []
@@ -320,32 +342,50 @@ class SetupHandler(BaseHandler):
             t_key = location.key()
 
             for item in time_list:
-                object_xy = XY(x = str(location.key()), y = item)
-                row_list.append( object_xy ) #cell, oerand: Object XY() 
+                cell = Cell(x = str(location.key()), y = item)
+                row_list.append( cell ) 
             c_list.append(row_list)
-        # This c_list only have Location (1st for each row)
-        # and XY(add bottoms)
+        # This c_list[0] is an instance of Location (1st for each row)
+        # c_list[1:] are instance of Cell(which are insite "add" buttons)
+        # Cell.x is x-coordinate, which is location. Cell.y is time.
+        # When an 'add' button clicked, Cell.x and Cell.y are passed to next step 
 
         que_recent = db.Query(CSession).order('-created')
         cs_list = que_recent.fetch(limit = 6)
         self.doRender( 'setup.html', {'course_list' : c_list, 'csession_list' : cs_list}) 
 
 class AddLocationHandler(BaseHandler):
-    
+    def get(self):
+        form = LocationForm()
+        self.doRender('add_location.html', {'form': form})
+        
+
     def post(self):
         if self.guest():
             return
         pkey = self.session['userkey']
         current_user = db.get(pkey)
+        
+        form = LocationForm(self.request.POST) 
+        if form.validate():
+            new_location = Location(rname = form.rname.data, \
+                    camera = form.camera.data, \
+                    size = form.size.data )
+            new_location.put()
+            self.redirect('/setup')
+        else:
+            self.doRender('add_location.html', {'form': form})
 
-        t_rname = self.request.get('name')
-        t_camera = self.request.get('camera')
-        t_size = self.request.get('size')
+#        t_rname = self.request.get('name')
+#        t_camera = self.request.get('camera')
+#        t_size = self.request.get('size')
 
-        new_location = Location(rname = t_rname, camera = t_camera, size = t_size)
-        new_location.put()
+        # 0807 trying wtf
+#       LocationForm = model_form(Location)
+#       form = LocationForm(obj = new_location)
+#       self.doRender('not_found.html', {'form':form, 'msg':'form haha' })
+        # 0807 end trying wtf
 
-        self.redirect('/setup')
 
 class PreCourseHandler(BaseHandler):
     def post(self):
@@ -419,8 +459,8 @@ class TDSessionHandler(BaseHandler):
                 test = que_course.fetch(limit = 2) 
                 if len(test) == 0: # no course in this location
                     for item in time_list:
-                        object_xy = XY(x = location.rname, y = item)
-                        row_list.append( object_xy ) #cell, operand: Object XY()
+                        object_xy = Cell(x = location.rname, y = item)
+                        row_list.append( object_xy ) #cell, operand: Object Cell()
                 else:
 
                     for item in time_list:
@@ -429,11 +469,11 @@ class TDSessionHandler(BaseHandler):
                         if len(result) != 0:
                             #location_name = result[0].loc.rname # result[0] is CSession Obj
                             cname = result[0].cname
-                            object_xy = XY(x = str(result[0].key()), z = cname)
-                            row_list.append(object_xy) #cell, operand: Object XY(), have z element 
+                            object_xy = Cell(x = str(result[0].key()), z = cname)
+                            row_list.append(object_xy) #cell, operand: Object Cell(), have z element 
                         else:
-                            object_xy = XY(x = location.rname, y = item)
-                            row_list.append( object_xy ) #cell, oerand: Object XY() 
+                            object_xy = Cell(x = location.rname, y = item)
+                            row_list.append( object_xy ) #cell, oerand: Object Cell() 
                                                 
                 course_list.append(row_list)
                 # end for location in location_list
@@ -494,8 +534,8 @@ class PreAssignTDHandler(BaseHandler):
                 test = que_course.fetch(limit = 2) 
                 if len(test) == 0: # no course in this location
                     for item in time_list:
-                        object_xy = XY(x = ' ')
-                        row_list.append( object_xy ) #cell, operand: Object XY()
+                        object_xy = Cell(x = ' ')
+                        row_list.append( object_xy ) #cell, operand: Object Cell()
                 else:
 
                     for item in time_list:

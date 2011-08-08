@@ -11,13 +11,13 @@
         <div id = "header">
             <h1><a href = "index.html">IITV Scheduler</a></h1>
             <ul>
-                <li><a href = "loginscreen.html"
-                    {% ifequal path '/loginscreen.html' %}
+                <li><a href = "/login"
+                    {% ifequal path '/login' %}
                         class = "selected"
                     {% endifequal %} 
                     >Login</a></li>
-                <li><a href = "register.html"
-                    {% ifequal path '/register.html' %}
+                <li><a href = "/register"
+                    {% ifequal path '/register' %}
                         class = "selected"
                     {% endifequal %} 
                     >Register</a></li>

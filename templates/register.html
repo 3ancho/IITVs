@@ -4,26 +4,54 @@
       <p>
       Please enter your information below:
       </p>
+      {% if msg %}
+           <p>{{msg}}</p>
+      {% endif %}
       
       <form method="post" action="/register">
           <table>
               <tr>
-                  <td>Full Name:</td> <td><input type="text" name="name"/></td>
+                  <td>{{form.name.label}}</td>
+                  <td>{{form.name}}</td>
+                  {% if form.name.errors %}
+                  <div class="form_errors">
+                      {% for error in form.name.errors %}
+                          <td> {{error}} </td>
+                      {% endfor %}
+                  </div>
+                  {% endif %} 
               </tr>
               <tr>
-                  <td>Username:</td> <td><input type="text" name="username"/></td>
+                  <td>{{form.username.label}}</td>
+                  <td>{{form.username}}</td>
+                  {% if form.username.errors %}
+                  <div class="form_errors">
+                      {% for error in form.username.errors %}
+                          <td> {{error}} </td>
+                      {% endfor %}
+                  </div>
+                  {% endif %} 
               </tr>
               <tr> 
-                  <td>Password:</td> <td><input type="password" name="password"/></td>
+                  <td>{{form.password.label}}</td>
+                  <td>{{form.password}}</td>
+                  {% if form.password.errors %}
+                  <div class="form_errors">
+                      {% for error in form.password.errors %}
+                          <td> {{error}} </td>
+                      {% endfor %}
+                  </div>
+                  {% endif %} 
               </tr> 
+              <tr>
+                  <td>{{form.confirm.label}}</td>
+                  <td>{{form.confirm}}</td>
+              </tr> 
+
           </table>
+          <!--input type="hidden" name="admin" value=False /-->
           <input type="submit" value="Create"/> 
-          <input type="submit" value="Cancel" 
-              onclick="window.location='/'; return false;"/>
+          <input type="reset" value="Reset" 
+              onclick="window.location='/register'; return false;"/>
       </form>
-      {% if error %}
-       <p>
-       {{ error }}
-       </p>
-      {% endif %}
 {% endblock %}

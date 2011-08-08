@@ -5,4 +5,45 @@
       The page you are requesting does not exits, at least yet. 
       </p>
       <p> An anchor and url to home should be here </p> 
+
+      {% if msg %}
+        {{msg}}
+      {% endif %}      
+      <form method="post" action="">
+          <table>
+              <tr>
+                  <td>Room Name:</td> <td>{{form.rname}}</td> 
+                  {% if form.rname.errors %} 
+                      <div class="form_errors">
+                      {% for error in form.rname.errors %}
+                          <td> {{error}} </td>
+                      {% endfor %} 
+                      </div>
+                  {% endif %}
+              </tr> 
+              <tr>
+                  <td>Camera(s):</td> <td>{{form.camera}}</td> 
+                  {% if form.camera.errors %} 
+                      <div class="form_errors">
+                      {% for error in form.camera.errors %}
+                          <td> {{error}} </td>
+                      {% endfor %} 
+                      </div>
+                  {% endif %}
+              </tr> 
+              <tr>
+                  <td>Room Size:</td> <td>{{form.size}}</td> 
+                  {% if form.size.errors %} 
+                      <div class="form_errors">
+                      {% for error in form.size.errors %}
+                          <td> {{error}} </td>
+                      {% endfor %} 
+                      </div>
+                  {% endif %}
+              </tr> 
+          </table>
+          <input type="submit" value="Add"/>
+      </form>
+          
+
 {% endblock %}
