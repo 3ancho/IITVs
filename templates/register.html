@@ -16,7 +16,7 @@
                   {% if form.name.errors %}
                   <div class="form_errors">
                       {% for error in form.name.errors %}
-                          <td> {{error}} </td>
+                          <td class="form_errors"> {{error}} </td>
                       {% endfor %}
                   </div>
                   {% endif %} 
@@ -27,7 +27,7 @@
                   {% if form.username.errors %}
                   <div class="form_errors">
                       {% for error in form.username.errors %}
-                          <td> {{error}} </td>
+                          <td class="form_errors"> {{error}} </td>
                       {% endfor %}
                   </div>
                   {% endif %} 
@@ -36,9 +36,9 @@
                   <td>{{form.password.label}}</td>
                   <td>{{form.password}}</td>
                   {% if form.password.errors %}
-                  <div class="form_errors">
+                  <div>
                       {% for error in form.password.errors %}
-                          <td> {{error}} </td>
+                          <td class="form_errors"> {{error}} </td>
                       {% endfor %}
                   </div>
                   {% endif %} 
@@ -50,8 +50,10 @@
 
           </table>
           <!--input type="hidden" name="admin" value=False /-->
-          <input type="submit" value="Create"/> 
-          <input type="reset" value="Reset" 
-              onclick="window.location='/register'; return false;"/>
+          <div class="form_buttons">
+              <input type="submit" value="Create"/> 
+              <input type="reset" value="Reset" 
+                  onclick="window.location='/register'; return false;"/>
+          </div>
       </form>
 {% endblock %}

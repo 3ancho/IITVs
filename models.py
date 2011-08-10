@@ -3,8 +3,23 @@ from google.appengine.ext import db
 #from wtforms.ext.appengine.db import model_form
 from wtforms import * 
 from wtforms.validators import *
+'''
+class SelectCheckbox(object):
+    def __call__(self, field, **kwargs):
+        html = ['']
+        for val, label, selected in field.iter_choices():
+            html.append(self.render_option(field.name, val, label, selected))
+        return HTMLString(u''.join(html))
 
-# A Model for a User
+    @classmethod
+    def render_option(cls, name, value, label, selected):
+        options = {'value': value}
+        if selected:
+            options['checked'] = u'checked'
+        return HTMLString(u'<input type="checkbox" name="%s" %s>%s</input>'\
+                % (name, html_params(**options), escape(unicode(label))))
+'''
+# User Model 
 class User(db.Model):
     username = db.StringProperty()
     password = db.StringProperty()
@@ -19,20 +34,25 @@ class User(db.Model):
     d_hours = db.IntegerProperty()
     a_hours = db.IntegerProperty(default = 0)
 
-class UserForm(Form):
-    name = TextField('Full Name', [required()])
-    username = TextField('User Name', [Length(min=3, max=30)])
+# User Form
+class LoginForm(Form):
+    username = TextField('User Name', \
+            [Required(), Length(min=3, max=30)])
     password = PasswordField('Password', \
-            [ Required(), \
-              EqualTo('confirm', message='Passwords mush match'), \
-              Length(min=3, max=40) ]) 
-    confirm = PasswordField('Repeat Password')
+            [Required(), Length(min=3, max=40)]) 
+# User Form
+class RegisterForm(LoginForm):
+    name = TextField('Full Name', [Required()])
+    confirm = PasswordField('Repeat Password', \
+            [EqualTo('password', message = 'Passwords must match')])
 
+# Location Model
 class Location(db.Model):
     rname = db.StringProperty(required=True)
     camera = db.IntegerProperty(default = 1)
     size = db.IntegerProperty()
 
+# Location Form
 class LocationForm(Form):
     rname = TextField('Room Name', [Length(min=2, max=30)])
     camera = IntegerField('Camera(s)', \
@@ -41,8 +61,9 @@ class LocationForm(Form):
     size = IntegerField('Room Size', \
             [NumberRange(min=0, max=400)])
 
+# Course Model
 class Course(db.Model):
-    ''' time matching pairs 
+    ''' duration index pairs 
         8:30am-9:45am       0
         10:00am-11:15am     1
         11:30am-12:40pm     2
@@ -58,8 +79,18 @@ class Course(db.Model):
     time = db.IntegerProperty() # time = [0 to 6]
     csessions = db.StringProperty() # '1234567' 
 
+# Course Form
+class CourseForm(Form):
+    cname = TextField('Course Name', \
+            [Required(), Length(min=2, max=30)] )
+    snumber = IntegerField('Section', \
+            [Required(), NumberRange(min=0, max=9)] )
+    csessions = SelectMultipleField('Session(s)', \
+            choices=[(1, 'Mon'),(2, 'Tue'),(3, 'Wed'),
+                (4,'Thr'), (5,'Fri'), (6,'Sat'), (7,'Sun')])
+    
 
-class CSession(Course): #course session
+class CSession(Course): # Course session inherits Course model
     td = db.ReferenceProperty(User)
     w_day = db.StringProperty() # one digit number
     td_list = db.ListProperty(db.Key)

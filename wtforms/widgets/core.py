@@ -263,3 +263,17 @@ class Option(object):
     def __call__(self, field, **kwargs):
         return Select.render_option(field._value(), field.label.text, field.checked)
 
+def select_multi_checkbox(field, ul_class='', **kwargs):
+    kwargs.setdefault('type', 'checkbox')
+    field_id = kwargs.pop('id', field.id)
+    html = [u'<ul %s>' % html_params(id=field_id, class_=ul_class)]
+    for value, label, checked in field.iter_choices():
+        choice_id = u'%s-%s' % (field_id, value)
+        options = dict(kwargs, name=field.name, value=value, id=choice_id)
+        if checked:
+            options['checked'] = 'checked'
+        html.append(u'<li><input %s /> ' % html_options(**options))
+        html.append(u'<label %s>%s</label></li>')
+    html.append(u'</ul>')
+    return u''.join(html)
+

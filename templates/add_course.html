@@ -1,40 +1,67 @@
 {% extends "inbase.html" %}
 {% block bodycontent %}
-      <h1>Add a new course</h1>
-      <p>
-      Please enter Course information below:
-      </p>
-      <h1> Some prompt 1. location name  2. time_index </h1>
+<h2>Add a course</h2>
+<p>
+Multipule sessions (include attribute 'day of week') will be created.
+</p> 
+<p>
+Please enter Course information below:
+</p>
+{% if msg %}
+ <p>
+ {{ msg }}
+ </p>
+{% endif %}
+<form method="post" action="/add_course">
+    <table>
+        <tr>
+            <td>{{form.cname.label}}</td> <td>{{form.cname}}</td>
+            {% if form.cname.errors %}
+                {% for error in form.cname.errors %}
+                    <td class="form_errors"> {{error}} </td>
+                {% endfor %}
+            {% endif %}
+        </tr>
+        <tr>
+            <td>{{form.snumber.label}}</td> <td>{{form.snumber}}</td>
+            {% if form.snumber.errors %}
+                {% for error in form.snumber.errors %}
+                    <td class="form_errors"> {{error}} </td>
+                {% endfor %}
+            {% endif %}
+        </tr>
+        <tr> 
+            <td>Duration</td> <td>N/A</td>
+        </tr> 
+    </table>
+        <tr>
+            <td>{{form.csessions.label}}</td> 
+            <td>{{form.csessions}}</td>
+            <!--
+            <div id="scrollable" style="overflow-x:scroll; width 200px; overflow: -moz-scrollbars-horizontal'">
+                <div style="font-size: 1px">&nbsp</div>
+            <script type="text/javascript">
+                var divid = "scrollable";
+                document.getElementById(divid).getElementsByTagName('div')[0].style.width = document.getElementById(divid).getElementsByTagName('select')[0].offsetWidth+'px'; 
+                document.getElementById(divid).getElementsByTagName('select')[0].style.width = document.getElementById(divid).offsetWidth+'px'; 
+                document.getElementById(divid).onscroll = function scrollEvent() { this.getElementsByTagName('select')[0].style.width = parseInt(this.offsetWidth+this.scrollLeft)+'px'; } 
+            </script>
+            </div>
+            -->
+            <td>Ctrl + mouse left click to multi select</td>
+            {% if form.snumber.errors %}
+                {% for error in form.snumber.errors %}
+                    <td class="form_errors"> {{error}} </td>
+                {% endfor %}
+            {% endif %}
+        </tr>
+    
+    <table>
+    </table>
       
-      <form method="post" action="/add_course">
-          <table>
-              <tr>
-                  <td>Course Name:</td> <td><input type="text" name="cname"/></td>
-              </tr>
-              <tr>
-                  <td>Course Number:</td> <td><input type="text" name="cnumber"/></td>
-              </tr>
-              <tr> 
-                  <td>*Session(s):</td> <td><input type="text" name="csessions"/></td>
-              </tr> 
-              <tr> 
-                  <td>Time Duraion:</td> <td><input type="text" name="time"/></td>
-              </tr> 
-          </table>
-          <p><b style="color: blue;">*Session(s) field should be number(s) 1 to 7
-              correspond to Monday to Sunday.</br></b>
-              e.g. session: 135, this means this course have Monday, Wednesday and 
-              Friday three sessions.
-          </p>
-          
-          <input type="hidden" name="loc_key" value="{{loc_key}}" />
-          <input type="hidden" name="time_index" value="{{time_index}}" />
-          <input type="submit" value="Create"/> 
-          <input type="reset" value="Clear"/>
-      </form>
-      {% if error %}
-       <p>
-       {{ error }}
-       </p>
-      {% endif %}
+    <input type="hidden" name="loc_key" value="{{loc_key}}" />
+    <input type="hidden" name="time_index" value="{{time_index}}" />
+    <input type="submit" value="Create"/> 
+    <input type="reset" value="Clear"/>
+</form>
 {% endblock %}

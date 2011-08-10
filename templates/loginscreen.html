@@ -1,30 +1,42 @@
 {% extends "base.html" %}
 {% block bodycontent %}
-
-<h2>Login IITV Scheduler</h1>
+<h2>Login</h1>
 </h2>
-
-<form method="post" action="/login">
-    <table>
-        <tr>
-            <td>Username</td>
-            <td><input type="text" name="username"></div></td>
-        </tr>     
-        <tr>
-            <td>Password </td>
-            <td><input type="password" name="password"></div></td>
-        </tr>
-    </table>
-    <input type="submit" value="Login">
-    
-    <input type="submit" value="Cancel"
-        onclick="window.location='/'; return false;"/>
-    <input type="submit" value="New Account"
-        onclick="window.location='/register'; return false;"/>
-</form>
 
 {% if error %}
 <p> {{error}} </p>
 {% endif %}
-
+<form method="post" action="/login">
+    <table>
+        <tr>
+            <td>{{form.username.label}}</td>
+            <td>{{form.username}}</td>
+            {% if form.username.errors %}
+            <div>error
+                {% for error in form.name.errors %}
+                    <td class="form_errors"> {{error}} </td>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </tr>     
+        <tr>
+            <td>{{form.password.label}}</td>
+            <td>{{form.password}}</td>
+            {% if form.password.errors %}
+            <div class="form_errors">
+                {% for error in form.password.errors %}
+                    <td class="form_errors"> {{error}} </td>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </tr>
+    </table>
+    <div class="form_buttons">
+        <input type="submit" value="Login">
+        <input type="reset" value="Reset"
+            onclick="window.location='/login'; return false;"/>
+        <input type="submit" value="Create Account"
+            onclick="window.location='/register'; return false;"/>
+    </div>    
+</form>
 {% endblock %}

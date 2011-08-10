@@ -108,25 +108,35 @@ def admin(handler):
 
 class RegisterHandler(BaseHandler):
     def get(self):
-        form = UserForm()
+        form = RegisterForm()
         self.doRender('register.html', {'form': form} ) 
 
     def post(self):
         self.session = Session()
 
-        form = UserForm(self.request.POST)
+        form = RegisterForm(self.request.POST)
         if form.validate():
             que = db.Query(User).filter('username =', form.username.data) 
             result = que.fetch(limit = 1)
-            if len(result) > 0:
+            if len(result) > 0: # If the username exist, display error msg
                 self.doRender('register.html', \
                      {'form': form, 'msg': 'Username exist'})
                 return
-            m = hashlib.sha224(form.password.data)
+
+            # See if User Model is empty, first user is admin
+            que = User.all(keys_only = True) # get keys only, faster than entities.
+            result = que.fetch(limit = 1)
+            if len(result) == 0: 
+                admin_flag = True
+            else:
+                admin_flag = False
+
+
+            m = hashlib.sha224(form.password.data) #Passwd hash
             newuser = User(name = form.name.data, \
                     username = form.username.data, \
                     password = m.hexdigest(), \
-                    admin = False)
+                    admin = admin_flag ) # Default value is False
 
             pkey = newuser.put()
             self.session['username'] = form.username.data 
@@ -159,44 +169,47 @@ class RegisterHandler(BaseHandler):
         #if success, create new user
         ''' 
 
+#        if pw == '' or un == '':
+#            self.doRender('loginscreen.html', \
+#                    {'error': 'Please specify Username and Password'} )
+#            logging.debug('login handler with no login info')
+#            return
 class LoginHandler(BaseHandler):
     def get(self):
-        self.doRender('loginscreen.html')
+        form = LoginForm()
+        self.doRender('loginscreen.html', {'form': form})
     
     def post(self):
-        logging.debug('post')
         self.session = Session()
-        un = self.request.get('username') # hello   
-        pw = self.request.get('password') # zhu
 
-        self.session.delete_item('username')
-        self.session.delete_item('userkey')
-        self.session.delete_item('admin')
+        form = LoginForm(self.request.POST)
+        if form.validate():
+            self.session.delete_item('username')
+            self.session.delete_item('userkey')
+            self.session.delete_item('admin')
+            
+            un = form.username.data 
+            pw = form.password.data 
+            m = hashlib.sha224(pw)
+            que = db.Query(User).filter('username =', un).filter('password =', m.hexdigest())
+            # que = que.filter('password =', m.hexdigest())
+            # above two may combine
+            results = que.fetch(limit = 1)
 
-        if pw == '' or un == '':
-            self.doRender('loginscreen.html', \
-                    {'error': 'Please specify Username and Password'} )
-            logging.debug('login handler with no login info')
-            return
-        m = hashlib.sha224(pw)
-        que = db.Query(User)
-        que = que.filter('username =', un)
-        que = que.filter('password =', m.hexdigest())
-        # above two may combine
-
-        results = que.fetch(limit = 1)
-
-        if len(results) > 0:
-            user = results[0]
-            self.session['userkey'] = user.key()
-            self.session['username'] = un
-            self.session['admin'] = user.admin
-            self.redirect('/main') 
-            #self.doRender('main.html', {} ) # if ok, go to main.html (logged in)
-        else:
-            self.doRender(
-                    'loginscreen.html',
-                    {'error' : 'Username or Password wrong' } )
+            if len(results) > 0:
+                user = results[0]
+                self.session['userkey'] = user.key()
+                self.session['username'] = un
+                self.session['admin'] = user.admin
+                self.redirect('/main') 
+                #self.doRender('main.html', {} ) # if ok, go to main.html (logged in)
+            else:
+                self.doRender(
+                        'loginscreen.html',
+                        {'error': 'Username or Password wrong', \
+                         'form': form} )
+        else: # if form.validate() Fails.
+            self.doRender('loginscreen.html', {'form': form} )
 
 class LogoutHandler(BaseHandler):
     def get(self):
@@ -270,7 +283,7 @@ class ShowUserHandler(BaseHandler):
         
         pkey = self.session['userkey']
         current_user = db.get(pkey)
-        if current_user.admin == "True":
+        if current_user.admin:
             self.doRender( 'show_user.html', { })
         else:
             self.doRender( 'main.html', {'msg' : 'Require admin previlege!'})
@@ -394,43 +407,64 @@ class PreCourseHandler(BaseHandler):
             return
         loc_key = self.request.get('row')
         time_index = int(self.request.get('column')) 
+#        self.redirect('/add_course') # this will not redirect values.
+        form = CourseForm()
         self.doRender( 'add_course.html', \
-                {'loc_key' : loc_key, 'time_index' : time_index} )
+                {'loc_key' : loc_key, 'time_idex' : time_index, \
+                'form': form} )
 
 class AddCourseHandler(BaseHandler):
     '''
     Add both Course and CSession
     '''
+    def get(self):
+        pass # this method is not used now.
+        form = CourseForm()
+        self.doRender('add_course.html', {'form':form})
+
     def post(self):
         if self.guest():
             return
-        location_key = db.Key(self.request.get('loc_key'))
+        # loc_key and time_index are hidden form attributes.
+        # Those two attr is determined by the position in the table.
+        loc_key = db.Key(self.request.get('loc_key'))
         time_index = int(self.request.get('time_index'))
-        t_cname = self.request.get('cname')
-        t_cnumber = int(self.request.get('cnumber'))
-        t_csessions = self.request.get('csessions') # String of numbers.
-        #t_time = self.request.get('time')  # March 31 need improve!
-        ''' 
-        que = db.Query(Location).filter('rname =', location_name) 
-        location_key = que.fetch(limit = 1)[0].key()
-        '''
-        for i in  t_csessions: # this loop is to find if a conflict exists.
-            que_test = db.Query(CSession).filter('loc =', location_key).filter('time =', time_index).filter('w_day =', i)
-            result_test = que_test.fetch(limit = 1)
-            if len(result_test) != 0:
-                self.doRender('setup.html', {'msg': 'Session Conflict'})
-                return
 
-        for i in t_csessions:
-            new_csession = CSession(loc = location_key, time = time_index, \
-                cname = t_cname, cnumber = t_cnumber, \
-                csessions = t_csessions, w_day = i)
-            new_csession.put()
-        
-        new_course = Course(loc = location_key, time = time_index, \
-                cname = t_cname, cnumber = t_cnumber, csessions = t_csessions )
-        new_course.put()
-        self.redirect('/setup')
+        form = CourseForm(self.request.POST)
+        if form.validate():
+            
+            t_cname = form.cname.data 
+            t_snumber = int(form.snumber.data)
+            t_csessions = form.csessions.data
+
+            logging_string = str(t_cname) + str(t_snumber) + str(t_csessions)
+            logging.debug(logging_string)
+            #t_time = self.request.get('time')  # March 31 need improve!
+            
+            for i in  t_csessions: # this loop is to find conflict session 
+                que_test = db.Query(CSession).filter('loc =', loc_key).filter('time =', time_index).filter('w_day =', i)
+                result_test = que_test.fetch(limit = 1)
+                if len(result_test) != 0:
+                    self.doRender('add_course.html', \
+                            {'msg': 'Session Conflict', \
+                            'loc_key':loc_key, 'time_index':time_index})
+                    return
+
+            for i in t_csessions:
+                new_csession = CSession(loc = loc_key, time = time_index, \
+                    cname = t_cname, snumber = t_snumber, \
+                    csessions = t_csessions, w_day = i)
+                new_csession.put()
+            
+            new_course = Course(loc = loc_key, time = time_index, \
+                    cname = t_cname, snumber = t_snumber, csessions = t_csessions )
+            new_course.put()
+            self.redirect('/setup')
+        else:
+            form = CourseForm()
+            self.doRender( 'add_course.html', \
+                {'loc_key' : loc_key, 'time_index' : time_index, \
+                'form': form} )
 
 class TDSessionHandler(BaseHandler):
     def get(self):
