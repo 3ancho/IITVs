@@ -34,30 +34,20 @@ Please enter Course information below:
             <td>Duration</td> <td>N/A</td>
         </tr> 
     </table>
+
+    <table>
         <tr>
             <td>{{form.csessions.label}}</td> 
             <td>{{form.csessions}}</td>
-            <!--
-            <div id="scrollable" style="overflow-x:scroll; width 200px; overflow: -moz-scrollbars-horizontal'">
-                <div style="font-size: 1px">&nbsp</div>
-            <script type="text/javascript">
-                var divid = "scrollable";
-                document.getElementById(divid).getElementsByTagName('div')[0].style.width = document.getElementById(divid).getElementsByTagName('select')[0].offsetWidth+'px'; 
-                document.getElementById(divid).getElementsByTagName('select')[0].style.width = document.getElementById(divid).offsetWidth+'px'; 
-                document.getElementById(divid).onscroll = function scrollEvent() { this.getElementsByTagName('select')[0].style.width = parseInt(this.offsetWidth+this.scrollLeft)+'px'; } 
-            </script>
-            </div>
-            -->
-            <td>Ctrl + mouse left click to multi select</td>
-            {% if form.snumber.errors %}
-                {% for error in form.snumber.errors %}
+            {% if form.csessions.errors %}
+                {% for error in form.csessions.errors %}
                     <td class="form_errors"> {{error}} </td>
                 {% endfor %}
             {% endif %}
         </tr>
+    </table> 
     
-    <table>
-    </table>
+   
       
     <input type="hidden" name="loc_key" value="{{loc_key}}" />
     <input type="hidden" name="time_index" value="{{time_index}}" />

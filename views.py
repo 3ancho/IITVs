@@ -65,13 +65,15 @@ class BaseHandler(webapp.RequestHandler):
             
 # End Basehandler
 
+
+# Move this to
 def admin(handler):
     '''
     check if current user is admin, return true if yes.
     Ruoran 0805: It is not needed, seems like.
     '''
     current_user = db.get(pkey)
-    if current_user.admin == "False":
+    if current_user.admin == False:
         self.doRender( 'main.html', {'msg' : 'Require admin previlege!'})
         return
 
@@ -293,19 +295,20 @@ class ShowUserHandler(BaseHandler):
             return
         pkey = self.session['userkey']
         current_user = db.get(pkey)
-        if current_user.admin == "False":
+        if current_user.admin == False:
             self.doRender( 'main.html', {'msg' : 'Require admin previlege!'})
             return
 
         que = db.Query(User)
         
+        # Bellow 'True' is String value, that's correct!
         if self.request.get('show_admin') == 'True': # if this will show admin
-            admin = que.filter('admin =', 'True')
+            admin = que.filter('admin =', True)
             admin = admin.fetch(limit = 100) 
             self.doRender( 'show_user.html', {'user_list' : admin } )
             return
         else:
-            user = que.filter('admin =', 'False')
+            user = que.filter('admin =', False)
             user = user.fetch(limit = 500)
             self.doRender( 'show_user.html', {'user_list' : user } )
             return
@@ -317,7 +320,7 @@ class DeleteUserHandler(BaseHandler):
         pkey = self.session['userkey']
         current_user = db.get(pkey)
         
-        if current_user.admin == "False":
+        if current_user.admin == False:
             self.doRender( 'main.html', {'msg' : 'Require admin previlege!'})
             return
 
@@ -362,11 +365,12 @@ class SetupHandler(BaseHandler):
         # This c_list[0] is an instance of Location (1st for each row)
         # c_list[1:] are instance of Cell(which are insite "add" buttons)
         # Cell.x is x-coordinate, which is location. Cell.y is time.
-        # When an 'add' button clicked, Cell.x and Cell.y are passed to next step 
+        # When an 'add' button clicked, Cell.x and Cell.y are passed to next step, Add Course. 
 
-        que_recent = db.Query(CSession).order('-created')
-        cs_list = que_recent.fetch(limit = 6)
-        self.doRender( 'setup.html', {'course_list' : c_list, 'csession_list' : cs_list}) 
+        que_recent = db.Query(Course).order('-created')
+        new_courses = que_recent.fetch(limit = 3)
+        self.doRender( 'setup.html', {'course_list' : c_list,\
+                'new_courses' : new_courses}) 
 
 class AddLocationHandler(BaseHandler):
     def get(self):
@@ -410,7 +414,7 @@ class PreCourseHandler(BaseHandler):
 #        self.redirect('/add_course') # this will not redirect values.
         form = CourseForm()
         self.doRender( 'add_course.html', \
-                {'loc_key' : loc_key, 'time_idex' : time_index, \
+                {'loc_key' : loc_key, 'time_index' : time_index, \
                 'form': form} )
 
 class AddCourseHandler(BaseHandler):
@@ -431,15 +435,11 @@ class AddCourseHandler(BaseHandler):
         time_index = int(self.request.get('time_index'))
 
         form = CourseForm(self.request.POST)
+
         if form.validate():
-            
             t_cname = form.cname.data 
             t_snumber = int(form.snumber.data)
             t_csessions = form.csessions.data
-
-            logging_string = str(t_cname) + str(t_snumber) + str(t_csessions)
-            logging.debug(logging_string)
-            #t_time = self.request.get('time')  # March 31 need improve!
             
             for i in  t_csessions: # this loop is to find conflict session 
                 que_test = db.Query(CSession).filter('loc =', loc_key).filter('time =', time_index).filter('w_day =', i)
@@ -449,22 +449,22 @@ class AddCourseHandler(BaseHandler):
                             {'msg': 'Session Conflict', \
                             'loc_key':loc_key, 'time_index':time_index})
                     return
-
+            
+            # Add Csessions instances.
             for i in t_csessions:
                 new_csession = CSession(loc = loc_key, time = time_index, \
                     cname = t_cname, snumber = t_snumber, \
                     csessions = t_csessions, w_day = i)
                 new_csession.put()
-            
+            # Add a Course instances, which is parent of previous sessions 
             new_course = Course(loc = loc_key, time = time_index, \
                     cname = t_cname, snumber = t_snumber, csessions = t_csessions )
             new_course.put()
             self.redirect('/setup')
         else:
-            form = CourseForm()
             self.doRender( 'add_course.html', \
                 {'loc_key' : loc_key, 'time_index' : time_index, \
-                'form': form} )
+                'form': form, 'msg':'form valid failed'} )
 
 class TDSessionHandler(BaseHandler):
     def get(self):

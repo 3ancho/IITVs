@@ -3,6 +3,7 @@ from google.appengine.ext import db
 #from wtforms.ext.appengine.db import model_form
 from wtforms import * 
 from wtforms.validators import *
+import wtforms.widgets
 '''
 class SelectCheckbox(object):
     def __call__(self, field, **kwargs):
@@ -37,12 +38,12 @@ class User(db.Model):
 # User Form
 class LoginForm(Form):
     username = TextField('User Name', \
-            [Required(), Length(min=3, max=30)])
+            [required(), Length(min=3, max=30)])
     password = PasswordField('Password', \
-            [Required(), Length(min=3, max=40)]) 
+            [required(), Length(min=3, max=40)]) 
 # User Form
 class RegisterForm(LoginForm):
-    name = TextField('Full Name', [Required()])
+    name = TextField('Full Name', [required()])
     confirm = PasswordField('Repeat Password', \
             [EqualTo('password', message = 'Passwords must match')])
 
@@ -54,9 +55,9 @@ class Location(db.Model):
 
 # Location Form
 class LocationForm(Form):
-    rname = TextField('Room Name', [Length(min=2, max=30)])
+    rname = TextField('Room Name', [required(), Length(min=2, max=30)])
     camera = IntegerField('Camera(s)', \
-            [NumberRange(min=0, max=3, \
+            [required(), NumberRange(min=0, max=3, \
             message=('Value should be 0 to 3'))])
     size = IntegerField('Room Size', \
             [NumberRange(min=0, max=400)])
@@ -77,18 +78,23 @@ class Course(db.Model):
     cnumber = db.IntegerProperty() # course number 
     loc = db.ReferenceProperty(Location)
     time = db.IntegerProperty() # time = [0 to 6]
-    csessions = db.StringProperty() # '1234567' 
+    csessions = db.StringListProperty() # '1234567' 
+
+
+class MultiCheckboxField(SelectMultipleField):
+    widget = widgets.ListWidget(prefix_label=False)
+    option_widget = widgets.CheckboxInput()
 
 # Course Form
 class CourseForm(Form):
     cname = TextField('Course Name', \
-            [Required(), Length(min=2, max=30)] )
+            [required(), Length(min=2, max=30)] )
+     
     snumber = IntegerField('Section', \
-            [Required(), NumberRange(min=0, max=9)] )
-    csessions = SelectMultipleField('Session(s)', \
-            choices=[(1, 'Mon'),(2, 'Tue'),(3, 'Wed'),
-                (4,'Thr'), (5,'Fri'), (6,'Sat'), (7,'Sun')])
-    
+            [required(), NumberRange(min=0, max=9)] )
+    csessions = MultiCheckboxField('Session(s)', [required()],\
+            choices=[('1', 'Mon'),('2', 'Tue'),('3', 'Wed'),
+                ('4','Thr'), ('5','Fri'), ('6','Sat'), ('7','Sun')])
 
 class CSession(Course): # Course session inherits Course model
     td = db.ReferenceProperty(User)

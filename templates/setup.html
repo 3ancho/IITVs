@@ -1,56 +1,69 @@
 {% extends "inbase.html" %}
 {% block bodycontent %}
-    <h2> Set Up and Manage Courses and Rooms </h2>
-    <p>
-        Manage Course and Room. 
-    </p>  
-    <h3> Input Table </h3>
-    <table>
-        <tr>
-            <th> </th>
-            <th> 8:30am-9:45am</th>
-            <th> 10:00am-11:15am</th>
-            <th> 11:30am-12:40pm</th>
-            <th> 1:50pm-3:00pm</th>
-            <th> 3:15pm-4:30pm</th>
-            <th> 5:00pm-6:10pm</th>
-            <th> 6:30pm-9:10pm</th>
-        </tr> 
-          
-        {% for row_list in course_list %} 
-        <tr>
-            {% for cell in row_list %}
-                {% if cell.rname %}
-                    <td>{{ cell.rname }}</td>
-                {% else %} 
-                    <td> 
-                        <form method="post" action="/pre_course">
-                            <input type="hidden" name="row" value="{{cell.x}}" /> 
-                            <input type="hidden" name="column" value="{{cell.y}}" /> 
-                            <input type="submit" value="add" />
-                        </form> 
-                    </td>
-                {% endif %} 
-            {% endfor %}
-        </tr>
+<h2> Set Up and Manage Courses and Rooms </h2>
+<p>
+    Manage Course and Room. 
+</p>  
+<h3> Input Table </h3>
+<table>
+    <tr>
+        <th> </th>
+        <th> 8:30am-9:45am</th>
+        <th> 10:00am-11:15am</th>
+        <th> 11:30am-12:40pm</th>
+        <th> 1:50pm-3:00pm</th>
+        <th> 3:15pm-4:30pm</th>
+        <th> 5:00pm-6:10pm</th>
+        <th> 6:30pm-9:10pm</th>
+    </tr> 
+      
+    {% for row_list in course_list %} 
+    <tr>
+        {% for cell in row_list %}
+            {% if cell.rname %}
+                <td>{{ cell.rname }}</td>
+            {% else %} 
+                <td> 
+                    <form method="post" action="/pre_course">
+                        <input type="hidden" name="row" value="{{cell.x}}" /> 
+                        <input type="hidden" name="column" value="{{cell.y}}" /> 
+                        <input type="submit" value="add" />
+                    </form> 
+                </td>
+            {% endif %} 
         {% endfor %}
-    </table>
-
-    <button onclick="window.location='/add_location'">Add Classroom</button>
-    <button onclick="window.location='/setup'">Page Refresh</button> 
-
-    <h3> Recent added course-session(s) </h3>  
-    {% for session in csession_list %}
-        <p>
-        {{ session.cname }} ({{ session.w_day }})
-        {{ session.created|date:"D M Y" }}
-        </p>
+    </tr>
     {% endfor %}
+</table>
 
-    {% if msg %}
-       <h2>
-       Error: {{ msg }} !
-       </h2>
-    {% endif %}
+<button onclick="window.location='/add_location'">Add Classroom</button>
+<button onclick="window.location='/setup'">Page Refresh</button> 
+
+<h3> Recent added course-session(s) (created|date: "D M Y")</h3>
+<h3> td class="w_day"  action=/quick_delete </h3>
+<h3> JavaScript Submit action </h3>
+</br>
+{% for new_course in new_courses%}
+    <div>
+        <form method="post" action="/quick_delete"> 
+            <input type="hidden" name="course_key" 
+            value="{{new_course.key}}" />
+            <input type="submit" value="delete" />
+        
+        Course Name: {{ new_course.cname }} 
+        <i>({{ new_course.created|date:"D M Y" }})</i>
+        {% for item in new_course.csessions %}
+            <td class="w_day">{{item}}</td>
+        {% endfor %}
+        </form> 
+    </div>
+    </br>
+{% endfor %}
+
+{% if msg %}
+   <h2>
+   Error: {{ msg }} !
+   </h2>
+{% endif %}
 
 {% endblock %}
