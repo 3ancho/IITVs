@@ -1,5 +1,12 @@
 {% extends "inbase.html" %}
 {% block bodycontent %}
+
+<script type="text/javascript" >
+function confirm_delete(){
+    return window.confirm("Are you sure you want to delet?");
+}
+</script>
+
 <h2> Set Up and Manage Courses and Rooms </h2>
 <p>
     Manage Course and Room. 
@@ -45,8 +52,9 @@
 </br>
 {% for new_course in new_courses%}
     <div>
-        <form method="post" action="/quick_delete"> 
-            <input type="hidden" name="course_key" 
+        <form method="post" action="/quick_delete" 
+        onsubmit="return confirm_delete();"> 
+            <input type="hidden" name="course_key" id="confirm"
             value="{{new_course.key}}" />
             <input type="submit" value="delete" />
         
@@ -62,7 +70,7 @@
 
 {% if msg %}
    <h2>
-   Error: {{ msg }} !
+    {{ msg }} 
    </h2>
 {% endif %}
 

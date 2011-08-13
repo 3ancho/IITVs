@@ -26,6 +26,7 @@ def main():
         ('/td_setting', TDSettingHandler),
         ('/user_info', UserInfoHandler),
         ('/jinja2', Jinja2Handler),
+        ('/quick_delete', QuickDeleteHandler),
         ('/.*', IndexHandler)],
         debug=True)
     wsgiref.handlers.CGIHandler().run(application)

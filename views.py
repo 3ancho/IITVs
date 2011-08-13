@@ -125,7 +125,7 @@ class RegisterHandler(BaseHandler):
                      {'form': form, 'msg': 'Username exist'})
                 return
 
-            # See if User Model is empty, first user is admin
+
             que = User.all(keys_only = True) # get keys only, faster than entities.
             result = que.fetch(limit = 1)
             if len(result) == 0: 
@@ -371,6 +371,19 @@ class SetupHandler(BaseHandler):
         new_courses = que_recent.fetch(limit = 3)
         self.doRender( 'setup.html', {'course_list' : c_list,\
                 'new_courses' : new_courses}) 
+
+class QuickDeleteHandler(BaseHandler):
+    def get(self):
+        pass
+
+    def post(self):
+        course_key = self.request.get('course_key')
+        t_course = db.get(course_key)
+        name = t_course.cname
+        t_course.delete()
+
+        self.doRender('setup.html', {'msg': 'deleted course: ' + name})
+        
 
 class AddLocationHandler(BaseHandler):
     def get(self):

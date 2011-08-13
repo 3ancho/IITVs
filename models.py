@@ -4,22 +4,7 @@ from google.appengine.ext import db
 from wtforms import * 
 from wtforms.validators import *
 import wtforms.widgets
-'''
-class SelectCheckbox(object):
-    def __call__(self, field, **kwargs):
-        html = ['']
-        for val, label, selected in field.iter_choices():
-            html.append(self.render_option(field.name, val, label, selected))
-        return HTMLString(u''.join(html))
 
-    @classmethod
-    def render_option(cls, name, value, label, selected):
-        options = {'value': value}
-        if selected:
-            options['checked'] = u'checked'
-        return HTMLString(u'<input type="checkbox" name="%s" %s>%s</input>'\
-                % (name, html_params(**options), escape(unicode(label))))
-'''
 # User Model 
 class User(db.Model):
     username = db.StringProperty()
