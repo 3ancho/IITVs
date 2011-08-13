@@ -237,6 +237,8 @@ class MainHandler(BaseHandler):
         location_list = que.fetch(limit = 500) # number of rows
 
         days = ['1','2','3','4','5','6','7'] 
+        titles = ['Mon', 'Tue', 'Wed', 'Thr', 'Fri', 'Sat', 'Sun']
+
         day_list = [] # list of course_list
 
         for day in days:
@@ -255,28 +257,29 @@ class MainHandler(BaseHandler):
                 if len(test) == 0: # no course in this location
                     for item in time_list:
                         object_xy = Cell(x = location.rname, y = item)
-                        row_list.append( object_xy ) #cell, operand: Object Cell()
+                        row_list.append(object_xy) #cell, operand: Object Cell()
                 else:
-
                     for item in time_list:
                         que_cell = db.Query(CSession).filter('w_day =', day).filter('loc =', t_key).filter('time =', item)  
-                        result = que_cell.fetch(limit = 1) # should be: limit = 1
-                        if len(result) != 0: # Result is session obj, and it exists
+                        result = que_cell.fetch(limit = 1) 
+                        if len(result) != 0: #Result is session obj, and it exists
                             session = result[0]
                             td = session.td
                             info = Compact(info1 = session, info2 = td) 
-                            row_list.append( info ) #cell, operand: Session
+                            row_list.append( info )
                         else:
                             #object_xy = Cell(x = location.rname, y = item)
-                            row_list.append( '' ) #cell, oerand: Object Cell() 
+                            row_list.append('') #cell, oerand: Object Cell() 
                                                 
                 course_list.append(row_list)
-                # end for location in location_list
-            day_list.append(course_list) 
-            # end for day in days
+            # end for location in location_list
+
+            tab_view = Compact(info1 = course_list, \
+                    info2 = titles[days.index(day)])
+            day_list.append(tab_view) 
+        # end for day in days
         
         self.doRender('main.html', {'day_list' : day_list})
-
 
 class ShowUserHandler(BaseHandler):
     def get(self):
@@ -381,6 +384,7 @@ class QuickDeleteHandler(BaseHandler):
         t_course = db.get(course_key)
         name = t_course.cname
         t_course.delete()
+        #que = db.Query(CSession).filter(
 
         self.doRender('setup.html', {'msg': 'deleted course: ' + name})
         
@@ -464,11 +468,12 @@ class AddCourseHandler(BaseHandler):
                     return
             
             # Add Csessions instances.
+            key_list = []
             for i in t_csessions:
                 new_csession = CSession(loc = loc_key, time = time_index, \
                     cname = t_cname, snumber = t_snumber, \
                     csessions = t_csessions, w_day = i)
-                new_csession.put()
+                key_list.append(new_csession.put())
             # Add a Course instances, which is parent of previous sessions 
             new_course = Course(loc = loc_key, time = time_index, \
                     cname = t_cname, snumber = t_snumber, csessions = t_csessions )
@@ -490,11 +495,12 @@ class TDSessionHandler(BaseHandler):
         location_list = que.fetch(limit = 500) # number of rows
 
         days = ['1','2','3','4','5','6','7'] 
+        titles = ['Mon', 'Tue', 'Wed', 'Thr', 'Fri', 'Sat', 'Sun']
         day_list = [] # list of course_list
 
         for day in days:
             course_list = [] # list of row_list
-            row_list = [] # may deleted
+            #row_list = [] # may deleted
             time_list = [0,1,2,3,4,5,6]
 
             for location in location_list:
@@ -510,10 +516,9 @@ class TDSessionHandler(BaseHandler):
                         object_xy = Cell(x = location.rname, y = item)
                         row_list.append( object_xy ) #cell, operand: Object Cell()
                 else:
-
                     for item in time_list:
                         que_cell = db.Query(CSession).filter('w_day =', day).filter('loc =', t_key).filter('time =', item)  
-                        result = que_cell.fetch(limit = 1) # A Query for CSession Object, cs result
+                        result = que_cell.fetch(limit = 1) 
                         if len(result) != 0:
                             #location_name = result[0].loc.rname # result[0] is CSession Obj
                             cname = result[0].cname
@@ -525,7 +530,9 @@ class TDSessionHandler(BaseHandler):
                                                 
                 course_list.append(row_list)
                 # end for location in location_list
-            day_list.append(course_list) 
+            tab_view = Compact(info1 = course_list, \
+                    info2 = titles[days.index(day)])
+            day_list.append(tab_view) 
             # end for day in days
         
         self.doRender( 'td_session.html', {'day_list' : day_list})
@@ -552,7 +559,7 @@ class ListTDHandler(BaseHandler):
         cs.td_list.append(user_key)
         cs.put()
 
-        self.redirect('/td_session')
+        self.doRender('td_session.html', {'msg': 'Add Success'})
 
 class PreAssignTDHandler(BaseHandler):
     def get(self):
@@ -565,6 +572,7 @@ class PreAssignTDHandler(BaseHandler):
         location_list = que.fetch(limit = 500) # number of rows
 
         days = ['1','2','3','4','5','6','7'] 
+        titles = ['Mon', 'Tue', 'Wed', 'Thr', 'Fri', 'Sat', 'Sun']
         day_list = [] # list of course_list
 
         for day in days:
@@ -600,7 +608,9 @@ class PreAssignTDHandler(BaseHandler):
                             row_list.append(' ') # empty string
                 course_list.append(row_list)
                 # end for location in location_list
-            day_list.append(course_list) 
+            tab_view = Compact(info1 = course_list, \
+                    info2 = titles[days.index(day)])
+            day_list.append(tab_view) 
             # end for day in days
         
         self.doRender( 'pre_assign_td.html', {'day_list' : day_list})

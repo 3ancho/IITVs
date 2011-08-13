@@ -2,8 +2,8 @@
 {% block bodycontent %}
 <h2> Below are the sessions without a TD </h2>
 <div class="tabber">
-    {% for course_list in day_list %}
-    <div class="tabbertab">
+    {% for tab_view in day_list %}
+    <div class="tabbertab" title="{{tab_view.info2}}">
         <h2></h2>
         <table>
             <tr>
@@ -17,7 +17,7 @@
                 <th> 6:30pm-9:10pm</th>
             </tr> 
                
-          {% for row_list in course_list %} 
+          {% for row_list in tab_view.info1 %} 
             <tr>
                 {% for cell in row_list %} {# cell is CS object or " " or location #}
                     {% if cell.rname %}

@@ -64,6 +64,7 @@ class Course(db.Model):
     loc = db.ReferenceProperty(Location)
     time = db.IntegerProperty() # time = [0 to 6]
     csessions = db.StringListProperty() # '1234567' 
+   # td_list = db.ListProperty(db.Key)
 
 
 class MultiCheckboxField(SelectMultipleField):
@@ -82,17 +83,18 @@ class CourseForm(Form):
                 ('4','Thr'), ('5','Fri'), ('6','Sat'), ('7','Sun')])
 
 class CSession(Course): # Course session inherits Course model
-    td = db.ReferenceProperty(User)
     w_day = db.StringProperty() # one digit number
     td_list = db.ListProperty(db.Key)
+    td = db.ReferenceProperty(User)
 
 class Cell(db.Model): # an object helps to pass values
     x = db.StringProperty() # row: location -> location.rname
     y = db.IntegerProperty() # column: time slot -> Ingeter
-#    z = db.StringProperty() # specify a day
+    z = db.StringProperty() # specify a day, Required
 #    zz = db.StringProperty() # specify course_session name
 
 class Compact:
+    # A class wraps two objects, for template value passing
     def __init__(self, info1, info2):
         self.info1 = info1
         self.info2 = info2
