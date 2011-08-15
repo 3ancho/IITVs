@@ -60,7 +60,7 @@ class Course(db.Model):
     '''
     created = db.DateTimeProperty(auto_now = True)
     cname = db.StringProperty() # course name (major)
-    cnumber = db.IntegerProperty() # course number 
+    snumber = db.IntegerProperty() # course number 
     loc = db.ReferenceProperty(Location)
     time = db.IntegerProperty() # time = [0 to 6]
     csessions = db.StringListProperty() # '1234567' 

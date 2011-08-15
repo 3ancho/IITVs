@@ -2,3 +2,5 @@
 *.swp
 *.py.swp
 *.index.py.swp
+*.pyc
+*.pyo

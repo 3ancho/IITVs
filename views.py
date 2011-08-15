@@ -10,7 +10,6 @@ from google.appengine.ext import db
 from util.sessions import Session
 from models import *
 
-
 # BaseHandler
 class BaseHandler(webapp.RequestHandler):
     def guest(self):
@@ -62,51 +61,26 @@ class BaseHandler(webapp.RequestHandler):
         outstr = template.render(temp, newval)
         self.response.out.write(outstr)
         return True
-            
+ 
+#    def get_current_user(self):
+#        logging.error('get_current_user')
+#        pkey = self.session['userkey']
+#        return db.get(pkey)
+
+    def admin(self, current_user = None):
+        if current_user == None:
+            self.session = Session()
+            pkey = self.session['userkey']
+            current_user = db.get(pkey)
+
+        '''check if current user is admin, if not direct to main.html''' 
+        if current_user.admin == False:
+            self.doRender( 'main.html', {'msg' : 'Require admin previlege!'})
+            return False
+        else:
+            return True
+           
 # End Basehandler
-
-
-# Move this to
-def admin(handler):
-    '''
-    check if current user is admin, return true if yes.
-    Ruoran 0805: It is not needed, seems like.
-    '''
-    current_user = db.get(pkey)
-    if current_user.admin == False:
-        self.doRender( 'main.html', {'msg' : 'Require admin previlege!'})
-        return
-
-#def doRender(handler, tname , values = {}):
-#    if tname == '/' or tname == '' or tname == None:
-#        tname = 'index.html' # this block is required, as path is None.
-#
-#    login_or_signin = tname == '/loginscreen.html' or tname == '/register.html' 
-#    
-#    if guest(handler) and not login_or_signin:
-#        logging.info('oh, guest wants to go elsewhere than just login or signin')
-#        # a msg should be here
-#        tname = 'index.html'
-#
-#    temp = os.path.join(os.path.dirname(__file__), 'templates/' + tname)
-#    if not os.path.isfile(temp):
-#        temp = os.path.join(os.path.dirname(__file__), 'templates/not_found.html')    
-#        # not_found.html should be edited.
-#        
-#    # Make a copy of the dictionary and add basic values
-#    newval = dict(values)
-#    newval['path'] = handler.request.path
-#    if 'username' in handler.session:
-#        newval['username'] = handler.session['username']
-#    admin = handler.session.get('admin')
-#    if admin != 'False':
-#        newval['admin'] = admin
-#    
-#    outstr = template.render(temp, newval)
-#    handler.response.out.write(outstr)
-#    return True
-
-# end of helper functions, start of Handlers
 
 class RegisterHandler(BaseHandler):
     def get(self):
@@ -285,7 +259,7 @@ class ShowUserHandler(BaseHandler):
     def get(self):
         if self.guest():
             return
-        
+        self.session = Session() 
         pkey = self.session['userkey']
         current_user = db.get(pkey)
         if current_user.admin:
@@ -296,35 +270,37 @@ class ShowUserHandler(BaseHandler):
     def post(self):
         if self.guest():
             return
+        self.session = Session() 
         pkey = self.session['userkey']
         current_user = db.get(pkey)
-        if current_user.admin == False:
-            self.doRender( 'main.html', {'msg' : 'Require admin previlege!'})
-            return
+        
+        self.admin(current_user)
 
         que = db.Query(User)
         
         # Bellow 'True' is String value, that's correct!
-        if self.request.get('show_admin') == 'True': # if this will show admin
-            admin = que.filter('admin =', True)
-            admin = admin.fetch(limit = 100) 
-            self.doRender( 'show_user.html', {'user_list' : admin } )
+        show_admin = self.request.get('show_admin')
+        if show_admin == 'True': # if action is to show admin
+            admin_list = que.filter('admin =', True).fetch(limit = 100)
+
+            self.doRender( 'show_user.html', {'user_list' : admin_list, 'show_admin': 'cur_admin'  } )
             return
-        else:
-            user = que.filter('admin =', False)
-            user = user.fetch(limit = 500)
-            self.doRender( 'show_user.html', {'user_list' : user } )
+
+        else: # if action is to show normal user
+            user_list = que.filter('admin =', False).fetch(limit = 500)
+            que = db.Query(CSession) 
+            
+            self.doRender( 'show_user.html', {'user_list' : user_list, 'show_user': 'cur_user' } )
             return
 
 class DeleteUserHandler(BaseHandler):
     def post(self):
         if self.guest():
             return
+        self.session = Session()
         pkey = self.session['userkey']
         current_user = db.get(pkey)
-        
-        if current_user.admin == False:
-            self.doRender( 'main.html', {'msg' : 'Require admin previlege!'})
+        if not self.admin():
             return
 
         delete_list = self.request.get_all('key_to_delete')
@@ -348,8 +324,9 @@ class SetupHandler(BaseHandler):
     Correspond to (setup.html)
     '''
     def get(self):
-        if self.guest():
+        if self.guest() or not self.admin():
             return
+
         que = db.Query(Location)
         location_list = que.fetch(limit = 200) # number of rows(locations)
 
@@ -383,14 +360,22 @@ class QuickDeleteHandler(BaseHandler):
         course_key = self.request.get('course_key')
         t_course = db.get(course_key)
         name = t_course.cname
+        snumber = t_course.snumber
+        
+        que = db.Query(CSession)
+        session_list = que.filter('cname =', name).filter('snumber =', snumber).fetch(limit = 100)
+        for session in session_list:
+            session.delete()
+       
         t_course.delete()
-        #que = db.Query(CSession).filter(
 
         self.doRender('setup.html', {'msg': 'deleted course: ' + name})
         
 
 class AddLocationHandler(BaseHandler):
     def get(self):
+        if not self.admin():
+            return
         form = LocationForm()
         self.doRender('add_location.html', {'form': form})
         
@@ -457,8 +442,17 @@ class AddCourseHandler(BaseHandler):
             t_cname = form.cname.data 
             t_snumber = int(form.snumber.data)
             t_csessions = form.csessions.data
+          
+            # following code is checking conflict cname and snumber
+            que = db.Query(Course).filter('cname =', t_cname).filter('t_snumber =', t_snumber)
+            if len(que.fetch(limit = 1)) > 0:
+               self.doRender('add_course.html', \
+                       {'msg': 'Course Conflict', \
+                        'loc_key':loc_key, 'time_index':time_index})
+               return
             
-            for i in  t_csessions: # this loop is to find conflict session 
+            # following code is checking coflick sessions 
+            for i in  t_csessions: 
                 que_test = db.Query(CSession).filter('loc =', loc_key).filter('time =', time_index).filter('w_day =', i)
                 result_test = que_test.fetch(limit = 1)
                 if len(result_test) != 0:
