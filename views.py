@@ -388,6 +388,11 @@ class AddLocationHandler(BaseHandler):
         
         form = LocationForm(self.request.POST) 
         if form.validate():
+            result = db.Query(Location).filter('rname =', form.rname.data).fetch(limit = 1)
+            if len(result) > 0:
+                self.doRender('add_location.html', {'form': form, \
+                        'msg': 'Error: Location(room) name conflict'})
+                return
             new_location = Location(rname = form.rname.data, \
                     camera = form.camera.data, \
                     size = form.size.data )
@@ -649,27 +654,34 @@ class TDSettingHandler(BaseHandler):
         self.session = Session()
         key = self.session.get('userkey')
         user = db.get(key) 
-        self.doRender( 'td_setting.html', {'u': user})
+        form = UserForm()
+        self.doRender( 'td_setting.html', {'form': form, 'u': user, \
+                'info': ', please update your profile'})
 
     def post(self):
         self.session = Session()
         pkey = self.session.get('userkey')
         user = db.get(pkey)
-   
-        cwid = self.request.get('cwid')
-        major = self.request.get('major')
-        email = db.Email(self.request.get('email'))
-        phone = db.PhoneNumber(self.request.get('phone'))
-        d_hours = int(self.request.get('d_hours'))
+  
+        form = UserForm(self.request.POST)
+        if form.validate():
         
-        user.cwid = cwid
-        user.major = major
-        user.email = email
-        user.phone = phone
-        user.d_hours = d_hours
-        user.put()
+#            cwid = self.request.get('cwid')
+#            major = self.request.get('major')
+#            email = db.Email(self.request.get('email'))
+#            phone = db.PhoneNumber(self.request.get('phone'))
+#            d_hours = int(self.request.get('d_hours'))
+            
+            user.cwid = form.cwid.data 
+            user.major = form.major.data 
+            user.email = form.email.data 
+            user.phone = form.phone.data 
+            user.d_hours = form.d_hours.data
+            user.put()
 
-        self.doRender( 'td_setting.html', {'msg' : 'info updated'} )
+            self.doRender( 'td_setting.html', {'msg' : ', profile updated', 'u': user} )
+        else: # form validation failed
+            self.doRender('td_setting.html', {'form': form})
 
 class UserInfoHandler(BaseHandler):
     def get(self):

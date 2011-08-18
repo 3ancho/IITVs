@@ -20,6 +20,12 @@ class User(db.Model):
     d_hours = db.IntegerProperty()
     a_hours = db.IntegerProperty(default = 0)
 
+class UserForm(Form):
+    cwid = TextField('CWID', [required(), Length(min=8, max=10)] )
+    major = TextField('Major', [required(), Length(min=2, max=20) ] )# Regexp check needed Aug
+    email = TextField('Email', [required()] )
+    phone = TextField('Phone', [required(), Length(min=10, max=13)] ) 
+    d_hours = IntegerField('Desired Hours', [NumberRange(min = 0, max = 40), required()] ) 
 # User Form
 class LoginForm(Form):
     username = TextField('User Name', \

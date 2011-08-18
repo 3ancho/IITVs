@@ -1,57 +1,97 @@
 {% extends "inbase.html" %}
 {% block bodycontent %}
 
-    <p>JavaScript Validation Needed here, email phone etc</p>
-    <form method="post" action="/td_setting">
-        <table style="text-align: center; ">
-            <tr>
-                <td></td>
-                <td>Input value</td>
-                <td>Current value</td>
-            </tr>
-            <tr>
-                <td>CWID:</td>
-                <td><input type="text" name="cwid" /></td>
-                <td> {{u.cwid}} </td>
-            </tr>
-            <tr>
-                <td>Major:</td>
-                <td><input type="text" name="major" /></td>
-                <td> {{u.major}} </td>
-            </tr>
-            <tr> 
-                <td>email:</td>
-                <td><input type="text" name="email" /></td>
-                <td> {{u.email}} </td>
-            </tr> 
-            <tr> 
-                <td>phone:</td>
-                <td><input type="text" name="phone" /></td>
-                <td> {{u.phone}} </td>
-            </tr> 
-            <tr> 
-                <td>desired hours:</td>
-                <td><input type="text" name="d_hours" /></td>
-                <td> {{u.d_hours}} </td>
-            </tr> 
-            <tr>
-                <td> Assigned hours:</td>
-                <td> N/A </td>
-                <td> {{u.a_hours}} </td>
-            </tr>
-            <tfoot>
-                <td style="border-bottom:0px"></td>
-                <td style="border-bottom:0px">
-                    <input type="submit" value="Submit"/> 
-                    <input type="reset" value="Clear" />
-                </td>
-            </tfoot>
-            <h1 id="hello"></h1>
-            <p onload = hello()></p>
-        </table>
-    </form>
-    {% if msg %}
-    <p> {{msg}} </p>
-    {% endif %}
+<h2>
+{% if not u.cwid %}
+{{u.username}}{{info}} 
+{% endif %}
+{% if msg %}
+<p> {{u.username}}{{msg}} </p>
+{% else %}
+</h2>
 
+<form method="post" action="/td_setting">
+    <table>
+        <tr>
+            <td></td>
+            <td>Current</td>
+            <td>Update</td>
+        </tr>
+        <tr>
+            <td>{{form.cwid.label}}</td>
+            <td> {{u.cwid}} </td>
+            <td> {{form.cwid}} </td>
+            {% if form.cwid.errors %} 
+                 <div class="form_errors">
+                 {% for error in form.cwid.errors %}
+                     <td> {{error}} </td>
+                 {% endfor %} 
+                 </div>
+            {% endif %}
+
+        </tr>
+        <tr>
+            <td>{{form.major.label}}</td>
+            <td>{{u.major}}</td>
+            <td>{{form.major}}</td>
+            {% if form.major.errors %} 
+                 <div class="form_errors">
+                 {% for error in form.major.errors %}
+                     <td> {{error}} </td>
+                 {% endfor %} 
+                 </div>
+            {% endif %}
+        </tr>
+        <tr> 
+            <td>{{form.email.label}}</td>
+            <td> {{u.email}} </td>
+            <td> {{form.email}} </td>
+            {% if form.email.errors %} 
+                 <div class="form_errors">
+                 {% for error in form.email.errors %}
+                     <td> {{error}} </td>
+                 {% endfor %} 
+                 </div>
+            {% endif %}
+        </tr> 
+        <tr> 
+            <td>{{form.phone.label}}</td>
+            <td> {{u.phone}} </td>
+            <td> {{form.phone}} </td>
+            {% if form.phone.errors %} 
+                 <div class="form_errors">
+                 {% for error in form.phone.errors %}
+                     <td> {{error}} </td>
+                 {% endfor %} 
+                 </div>
+            {% endif %}
+        </tr> 
+        <tr> 
+            <td>{{form.d_hours.label}}</td>
+            <td> {{u.d_hours}} </td>
+            <td> {{form.d_hours}} </td>
+            {% if form.d_hours.errors %} 
+                 <div class="form_errors">
+                 {% for error in form.d_hours.errors %}
+                     <td> {{error}} </td>
+                 {% endfor %} 
+                 </div>
+            {% endif %}
+        </tr> 
+        <tr>
+            <td> Assigned hours </td>
+            <td> {{u.a_hours}} </td>
+            <td> N/A </td>
+        </tr>
+        <tfoot>
+            <td style="border-bottom:0px"></td>
+            <td style="border-bottom:0px"></td>
+            <td style="border-bottom:0px">
+                <input type="submit" value="Submit"/> 
+                <input type="reset" value="Clear" />
+            </td>
+        </tfoot>
+    </table>
+</form>
+{% endif %}
 {% endblock %}
