@@ -88,10 +88,18 @@ class CourseForm(Form):
             choices=[('1', 'Mon'),('2', 'Tue'),('3', 'Wed'),
                 ('4','Thr'), ('5','Fri'), ('6','Sat'), ('7','Sun')])
 
+class Event(db.Model):
+    note = db.StringProperty()
+    created = db.DateTimeProperty(auto_now=True)
+    active = db.BooleanProperty()
+    csession = db.StringProperty()
+
 class CSession(Course): # Course session inherits Course model
     w_day = db.StringProperty() # one digit number
     td_list = db.ListProperty(db.Key)
     td = db.ReferenceProperty(User)
+    event = db.ReferenceProperty(Event)
+
 
 class Cell(db.Model): # an object helps to pass values
     x = db.StringProperty() # row: location -> location.rname

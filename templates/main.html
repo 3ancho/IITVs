@@ -34,13 +34,17 @@ Below is the course and shift table.
                             <td>{{ cell.rname }}</td>
                         {% else %} {% if cell.info1 %}
                             <td>
-                                {{ cell.info1.cname }} {# if cell is a Session. A button should be here Aug#}
-                                :
-                                {% if cell.info2.name %}
-                                    {{ cell.info2.name }}
-                                {% else %}
-                                    No TD
-                                {% endif %}
+                                <form method="post" action="/event">
+                                    <input type="hidden" name="session_key" 
+                                    value="{{cell.info1.key}}" />
+                                    {# if cell is a Session. A button should be here Aug#}
+                                    {% if cell.info2.name %} {# TD name #}
+                                        <input type="submit" 
+                                            value="{{ cell.info1.cname }}:{{ cell.info2.name }}"/> 
+                                    {% else %}
+                                        <input type="submit" value="{{ cell.info1.cname }}:No TD" /> 
+                                    {% endif %}
+                                </form> 
                             </td>
                         {% else %}
                             <td> 

@@ -704,3 +704,44 @@ class UserInfoHandler(BaseHandler):
 class Jinja2Handler(BaseHandler):
     def get(self):
         self.doRender('Jinja2.html', {'name': 'ruoran', 'pet': 'nini'}) 
+
+class EventHandler(BaseHandler):
+    def post(self):
+        if self.guest():
+            return
+        self.session = Session()
+        pkey = self.session.get('userkey')
+        user = db.get(pkey) # got user
+        ckey = self.request.get('session_key') 
+        csession = db.get(ckey) # got session
+        td = csession.td
+
+        result = db.Query(Event).filter('csession =', ckey).fetch(limit = 2)
+        if len(result) > 0:
+            self.doRender('show_event.html', {'td': td, 'session': csession, 'event': result[0] })
+        else:
+            self.doRender('add_event.html', {'td': td, 'session': csession, 'session_key': ckey}) 
+
+class ManageEventHandler(BaseHandler):
+    def post(self):
+        if self.guest():
+            return
+        self.session = Session()
+        pkey = self.session.get('userkey')
+        user = db.get(pkey) # got user
+       
+        t_note = self.request.get('note')
+        t_active = self.request.get('active_status')
+        ckey = self.request.get('session_key')
+
+        ckey = self.request.get('session_key') 
+        csession = db.get(ckey) # got session
+        td = csession.td # got TD
+
+        new_event = Event(note = t_note, active = t_active == 'True', csession = ckey)
+        new_event.put()
+
+        self.doRender('show_event.html', {'td': td, 'session': csession, 'event': new_event})
+
+
+
