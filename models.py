@@ -89,10 +89,11 @@ class CourseForm(Form):
                 ('4','Thr'), ('5','Fri'), ('6','Sat'), ('7','Sun')])
 
 class Event(db.Model):
-    note = db.StringProperty()
+    note = db.TextProperty()
     created = db.DateTimeProperty(auto_now=True)
     active = db.BooleanProperty()
     csession = db.StringProperty()
+    backup_td = db.StringProperty() 
 
 class CSession(Course): # Course session inherits Course model
     w_day = db.StringProperty() # one digit number

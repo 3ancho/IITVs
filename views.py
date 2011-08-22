@@ -665,13 +665,6 @@ class TDSettingHandler(BaseHandler):
   
         form = UserForm(self.request.POST)
         if form.validate():
-        
-#            cwid = self.request.get('cwid')
-#            major = self.request.get('major')
-#            email = db.Email(self.request.get('email'))
-#            phone = db.PhoneNumber(self.request.get('phone'))
-#            d_hours = int(self.request.get('d_hours'))
-            
             user.cwid = form.cwid.data 
             user.major = form.major.data 
             user.email = form.email.data 
@@ -706,23 +699,31 @@ class Jinja2Handler(BaseHandler):
         self.doRender('Jinja2.html', {'name': 'ruoran', 'pet': 'nini'}) 
 
 class EventHandler(BaseHandler):
+    '''The parent page is Main'''
     def post(self):
         if self.guest():
             return
         self.session = Session()
         pkey = self.session.get('userkey')
-        user = db.get(pkey) # got user
+        user = db.get(pkey) # got current user
         ckey = self.request.get('session_key') 
-        csession = db.get(ckey) # got session
-        td = csession.td
+        csession = db.get(ckey) # got the target session
+        td = csession.td #  target session.td
+        event = csession.event # target session.event
+        
 
-        result = db.Query(Event).filter('csession =', ckey).fetch(limit = 2)
-        if len(result) > 0:
-            self.doRender('show_event.html', {'td': td, 'session': csession, 'event': result[0] })
-        else:
-            self.doRender('add_event.html', {'td': td, 'session': csession, 'session_key': ckey}) 
+        if event != None:
+            self.doRender('show_event.html', {'td': td, 'session': csession, 'event': event })
+        else: # not event yet
+            if td != None and td.username == user.username:
+                self.doRender('add_event.html', {'td': td, 'session': csession, 'session_key': ckey, \
+                    'apply_off': 'True' }) 
+            else:
+                self.doRender('add_event.html', {'td': td, 'session': csession, 'session_key': ckey})
+
 
 class ManageEventHandler(BaseHandler):
+    '''The parent page is event view'''
     def post(self):
         if self.guest():
             return
@@ -738,8 +739,15 @@ class ManageEventHandler(BaseHandler):
         csession = db.get(ckey) # got session
         td = csession.td # got TD
 
-        new_event = Event(note = t_note, active = t_active == 'True', csession = ckey)
-        new_event.put()
+        apply_off = self.request.get('apply_off')
+        if apply_off != None:
+            t_backup_td = 'No TD for this session'
+        else:
+            t_backup_td = None # The original TD is not applying off, just wrote memo.
+        new_event = Event(note = t_note, active = t_active == 'True', csession = ckey, backup_td = t_backup_td)
+        csession.event = new_event.put() # put event, and, update session.event
+        csession.put()
+        
 
         self.doRender('show_event.html', {'td': td, 'session': csession, 'event': new_event})
 
