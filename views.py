@@ -697,7 +697,20 @@ class UserInfoHandler(BaseHandler):
 class Jinja2Handler(BaseHandler):
     def get(self):
         self.doRender('Jinja2.html', {'name': 'ruoran', 'pet': 'nini'}) 
+'''
+# temp below
+class Event(db.Model):
+    created = db.DateTimeProperty(auto_now = True)
+    active = db.BooleanProperty()
+    csession = db.StringProperty()
+    messages = db.ListProperty(db.Key) # list with message.key 
 
+class Message(db.Model):
+    note = db.StringProperty(multiline = True)
+    user = db.ReferenceProperty(User)
+    created = db.DateTimeProperty(auto_now=True) # auto created, no worry
+# temp above
+'''
 class EventHandler(BaseHandler):
     '''The parent page is Main'''
     def post(self):
@@ -706,8 +719,10 @@ class EventHandler(BaseHandler):
         self.session = Session()
         pkey = self.session.get('userkey')
         user = db.get(pkey) # got current user
+
         ckey = self.request.get('session_key') 
         csession = db.get(ckey) # got the target session
+
         td = csession.td #  target session.td
         event = csession.event # target session.event
         
@@ -729,7 +744,7 @@ class ManageEventHandler(BaseHandler):
             return
         self.session = Session()
         pkey = self.session.get('userkey')
-        user = db.get(pkey) # got user
+        current_user = db.get(pkey) # got user
        
         t_note = self.request.get('note')
         t_active = self.request.get('active_status')
@@ -739,17 +754,14 @@ class ManageEventHandler(BaseHandler):
         csession = db.get(ckey) # got session
         td = csession.td # got TD
 
-        apply_off = self.request.get('apply_off')
-        if apply_off != None:
-            t_backup_td = 'No TD for this session'
-        else:
-            t_backup_td = None # The original TD is not applying off, just wrote memo.
-        new_event = Event(note = t_note, active = t_active == 'True', csession = ckey, backup_td = t_backup_td)
+        new_message = Message(note = t_note, user = current_user)
+        new_event = Event(active = t_active == 'True', csession = ckey)
+        new_event.messages.append( new_message.put() )
         csession.event = new_event.put() # put event, and, update session.event
         csession.put()
         
 
-        self.doRender('show_event.html', {'td': td, 'session': csession, 'event': new_event})
+        self.doRender('show_event.html', {'td': td, 'session': csession, 'event': new_event, 'msg':'Event added'})
 
 
 

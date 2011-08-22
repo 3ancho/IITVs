@@ -89,11 +89,17 @@ class CourseForm(Form):
                 ('4','Thr'), ('5','Fri'), ('6','Sat'), ('7','Sun')])
 
 class Event(db.Model):
-    note = db.TextProperty()
-    created = db.DateTimeProperty(auto_now=True)
+#    note = db.TextProperty()
+    created = db.DateTimeProperty(auto_now = True)
     active = db.BooleanProperty()
     csession = db.StringProperty()
-    backup_td = db.StringProperty() 
+#    backup_td = db.StringProperty() 
+    messages = db.ListProperty(db.Key) # list with message.key 
+
+class Message(db.Model):
+    note = db.StringProperty(multiline = True)
+    user = db.ReferenceProperty(User)
+    created = db.DateTimeProperty(auto_now=True) # auto created, no worry
 
 class CSession(Course): # Course session inherits Course model
     w_day = db.StringProperty() # one digit number

@@ -2,37 +2,40 @@
 {% block bodycontent %}
 
 <h2>Currently no event for this session. Add an event below.</h2>
+<table>
+   <thead>
+       <tr>
+           <th>Selected Session</th>
+           <th>Corresponding TD</th>
+       </tr>
+   </thead>
+   <tbody>
+       <tr> 
+           <td>{{session.cname}}</td>
+           <td> 
+               {% if td.name %}
+                   {{td.name}}  
+               {% else %}
+                   No TD yet
+               {% endif %}
+           </td>
+       </tr>
+   </tbody>
+</table> 
+        
 <form method="post" action="/manage_event">
-    <table>
-        <thead>
-            <tr>
-                <th>Selected Session</th>
-                <th>Corresponding TD</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr> 
-                <td>{{session.cname}}</td>
-                <td> 
-                    {% if td.name %}
-                        {{td.name}} -- 
-                        {% if apply_off %}
-                        <input type="checkbox" name="apply_off" value=True checked> Off</input> 
-                        {% endif %} 
-                    {% else %}
-                        No TD yet<br>
-                    {% endif %}
-                </td>
-            </tr>
-        </tbody>
-        <p>Leave Message here (optional)</p>
-        <textarea name="note" cols="40" rows="5" ></textarea>
-        </br>
-        <input type="hidden" name="session_key" value="{{session_key}}" />
-        <input type="hidden" name="active_status" value=True /> 
-        </br>
-        <input type="submit" value="submit" />
-    </table> 
+    {% if apply_off %}
+    <input type="checkbox" name="active_status" value=True checked>Apply for an off</input> 
+    {% else %}
+    <input type="hidden" name="active_status" value=False />
+    {% endif %} 
+    
+    <p>Leave Message here (optional)</p>
+    <textarea name="note" cols="40" rows="5" ></textarea>
+    </br>
+    <input type="hidden" name="session_key" value="{{session_key}}" />
+    </br>
+    <input type="submit" value="submit" />
 </form>
 {% if msg %}
      <p> {{msg}} </p>
