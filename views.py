@@ -697,20 +697,7 @@ class UserInfoHandler(BaseHandler):
 class Jinja2Handler(BaseHandler):
     def get(self):
         self.doRender('Jinja2.html', {'name': 'ruoran', 'pet': 'nini'}) 
-'''
-# temp below
-class Event(db.Model):
-    created = db.DateTimeProperty(auto_now = True)
-    active = db.BooleanProperty()
-    csession = db.StringProperty()
-    messages = db.ListProperty(db.Key) # list with message.key 
 
-class Message(db.Model):
-    note = db.StringProperty(multiline = True)
-    user = db.ReferenceProperty(User)
-    created = db.DateTimeProperty(auto_now=True) # auto created, no worry
-# temp above
-'''
 class EventHandler(BaseHandler):
     '''The parent page is Main'''
     def post(self):
@@ -728,13 +715,26 @@ class EventHandler(BaseHandler):
         
 
         if event != None:
-            self.doRender('show_event.html', {'td': td, 'session': csession, 'event': event })
+            message_list = toList(event)
+            self.doRender('show_event.html', {'td': td, 'session': csession, \
+                    'event': event, 'session_key': ckey, 'message_list': message_list})
         else: # not event yet
             if td != None and td.username == user.username:
-                self.doRender('add_event.html', {'td': td, 'session': csession, 'session_key': ckey, \
-                    'apply_off': 'True' }) 
+                self.doRender('add_event.html', {'td': td, 'session': csession, \
+                        'session_key': ckey, 'apply_off': 'True' }) 
             else:
-                self.doRender('add_event.html', {'td': td, 'session': csession, 'session_key': ckey})
+                self.doRender('add_event.html', {'td': td, 'session': csession, \
+                        'session_key': ckey})
+
+def toList(event):
+    the_list = []
+    for key in event.messages:
+        string = ''
+        message = db.get(key)
+        string = message.user.name + ': '+ str(message.created)[0:19] + \
+                '<p>' + message.note + '</p>'
+        the_list.insert(0, string)
+    return the_list
 
 
 class ManageEventHandler(BaseHandler):
@@ -749,19 +749,26 @@ class ManageEventHandler(BaseHandler):
         t_note = self.request.get('note')
         t_active = self.request.get('active_status')
         ckey = self.request.get('session_key')
-
+        update = self.request.get('update_event')
         ckey = self.request.get('session_key') 
         csession = db.get(ckey) # got session
         td = csession.td # got TD
-
-        new_message = Message(note = t_note, user = current_user)
-        new_event = Event(active = t_active == 'True', csession = ckey)
-        new_event.messages.append( new_message.put() )
-        csession.event = new_event.put() # put event, and, update session.event
-        csession.put()
         
+        if update != None: 
+            new_event = csession.event
+            new_event.active = (t_active == 'True')
+            new_message = Message(note = t_note, user = current_user)
+            new_event.messages.append( new_message.put())
+            new_event.put()
+        else:
+            new_message = Message(note = t_note, user = current_user)
+            new_event = Event(active = t_active == 'True', csession = ckey)
+            new_event.messages.append( new_message.put() )
+            csession.event = new_event.put() # put event, and, update session.event
+            csession.put()
 
-        self.doRender('show_event.html', {'td': td, 'session': csession, 'event': new_event, 'msg':'Event added'})
-
-
+        message_list = toList(new_event)
+        self.doRender('show_event.html', {'td': td, 'session': csession, \
+                'event': new_event, 'msg':'Event updated', \
+                'message_list': message_list, 'session_ket': ckey})
 

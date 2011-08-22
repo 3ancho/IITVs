@@ -1,41 +1,50 @@
 {% extends "inbase.html" %}
 {% block bodycontent %}
 
-<h2>Event</h2>
+<h2>View/Edit Event</h2>
+
+{% if msg %}
+    <p> {{msg}} </p>
+    <a href="/event">Go Back</a>
+{% endif %}
+<table>
+    <thead>
+        <tr>
+            <th>Selected Session</th>
+            <th>Corresponding TD</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr> 
+            <td>{{session.cname}}</td>
+            <td> 
+                {% if td.name %}
+                    {{td.name}}
+                {% else %}
+                    No TD yet<br>
+                {% endif %}
+            </td>
+        </tr>
+    </tbody>
+</table> 
+
 <form method="post" action="/manage_event">
     <input type="radio" name="active_status" value=True {% if event.active %} checked {% endif %} 
         />Active<br> 
         <input type="radio" name="active_status" value=False {% if not event.active %} checked {% endif %}
         />Not Active / Resolved<br> 
-    <table>
-        <thead>
-            <tr>
-                <th>Selected Session</th>
-                <th>Corresponding TD</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr> 
-                <td>{{session.cname}}</td>
-                <td> 
-                    {% if td.name %}
-                        {{td.name}}
-                    {% else %}
-                        No TD yet<br>
-                    {% endif %}
-                </td>
-            </tr>
-        </tbody>
-        <textarea name="note" cols="40" rows="5" >{{event.note}}</textarea>
-        </br>
-        {% if not msg %}
-        {% endif %}
-        <input type="hidden" name="session_key" value="{{session_key}}" />
-        <input type="submit" value="submit" />
-    </table> 
+        <br>
+        {#% if not msg %#}
+            <textarea name="note" cols="40" rows="4" >Enter your message here</textarea>
+            <input type="hidden" name="session_key" value="{{session_key}}" />
+            <input type="hidden" name="update_event" value="True" />
+            <input type="submit" value="submit" />
+            <h3>Messages:</h3>
+            {% for message in message_list %}
+                <div id=messages_break></div>
+                <div id=messages>{{message}}</div>
+            {% endfor %}
+        {#% endif %}
 </form>
-{% if msg %}
-     <p> {{msg}} </p>
-{% endif %}  
 
 {% endblock %}
