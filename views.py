@@ -206,7 +206,15 @@ class MainHandler(BaseHandler):
     def get(self):
         if self.guest():
             return
-        
+        event_count = 0
+        active_count = 0
+        results = db.Query(CSession).fetch(limit =5000)
+        for item in results:
+            if item.event:
+                event_count = event_count + 1
+                if item.event.active:
+                    active_count = active_count + 1
+
         que = db.Query(Location)
         location_list = que.fetch(limit = 500) # number of rows
 
@@ -253,7 +261,8 @@ class MainHandler(BaseHandler):
             day_list.append(tab_view) 
         # end for day in days
         
-        self.doRender('main.html', {'day_list' : day_list})
+        self.doRender('main.html', {'day_list': day_list, \
+             'event_count': event_count, 'active_count': active_count})
 
 class ShowUserHandler(BaseHandler):
     def get(self):
@@ -754,7 +763,7 @@ class ManageEventHandler(BaseHandler):
         csession = db.get(ckey) # got session
         td = csession.td # got TD
         
-        if update != None: 
+        if update == 'True': 
             new_event = csession.event
             new_event.active = (t_active == 'True')
             new_message = Message(note = t_note, user = current_user)
@@ -769,6 +778,6 @@ class ManageEventHandler(BaseHandler):
 
         message_list = toList(new_event)
         self.doRender('show_event.html', {'td': td, 'session': csession, \
-                'event': new_event, 'msg':'Event updated', \
-                'message_list': message_list, 'session_ket': ckey})
+                'event': new_event, 'msg':'Event just updated', \
+                'message_list': message_list, 'session_key': ckey})
 

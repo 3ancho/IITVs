@@ -1,12 +1,12 @@
 {% extends "inbase.html" %}
 {% block bodycontent %}
 
-<h2>View/Edit Event</h2>
-
+<h2>View/Edit Event
 {% if msg %}
-    <p> {{msg}} </p>
-    <a href="/event">Go Back</a>
+    ({{msg}}) 
 {% endif %}
+</h2>
+
 <table>
     <thead>
         <tr>
@@ -34,17 +34,15 @@
         <input type="radio" name="active_status" value=False {% if not event.active %} checked {% endif %}
         />Not Active / Resolved<br> 
         <br>
-        {#% if not msg %#}
             <textarea name="note" cols="40" rows="4" >Enter your message here</textarea>
             <input type="hidden" name="session_key" value="{{session_key}}" />
             <input type="hidden" name="update_event" value="True" />
             <input type="submit" value="submit" />
-            <h3>Messages:</h3>
+            <h3>Messages: (Latest at top)</h3>
             {% for message in message_list %}
                 <div id=messages_break></div>
                 <div id=messages>{{message}}</div>
             {% endfor %}
-        {#% endif %}
 </form>
 
 {% endblock %}

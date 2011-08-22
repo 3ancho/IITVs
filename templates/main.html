@@ -5,10 +5,15 @@
 </script>
 
 <h2 style="color: red;"> {% if msg %} {{msg}} {% endif %} </h2>
-<h2> Hello "{{username}}". This is the main page.</h2> 
-<p>
-Below is the course and shift table.
-</p>
+<h3> Hello "{{username}}", below is the shift table</h3> 
+
+<div class="event_indicator">
+<table>
+    <td>Total Event:</td><td>{{event_count}}</td>
+    <td>  </td>
+    <td>Active Event:</td><td>{{active_count}}</td>
+</div>
+</table>
 <div class="tabber">
     {% for tab_view in day_list %}
     <div class="tabbertab" title="{{tab_view.info2}}">
@@ -39,7 +44,7 @@ Below is the course and shift table.
                                     value="{{cell.info1.key}}" />
                                     {# if cell is a Session. A button should be here Aug#}
                                     {% if cell.info2.name %} {# TD name #}
-                                        <input type="submit" 
+                                        <input type="submit" class="event"
                                             value="{{ cell.info1.cname }}:{{ cell.info2.name }}"/> 
                                     {% else %}
                                         <input type="submit" value="{{ cell.info1.cname }}:No TD" /> 
