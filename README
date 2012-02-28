@@ -1,6 +1,6 @@
 Author: Ruoran Wang
 
-h1. IITVs -- IITV scheduling 
+IITVs -- IITV scheduler
 A shift management web application writen in Python, running on Google App Engine.
 
 http://iitvschedule.appspot.com
