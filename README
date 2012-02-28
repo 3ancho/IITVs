@@ -1,5 +1,9 @@
-// Ruoran Wang
-IITVs -- IITV scheduling 
-It helps to manage courses, tv derectors and video editors schedules.
-All resouce are online in order to provide a easy-to-access platform or information management.
+Author: Ruoran Wang
+
+h1. IITVs -- IITV scheduling 
+A shift management web application writen in Python, running on Google App Engine.
+
+http://iitvschedule.appspot.com
+Demo user: admin, pass: admin
+
 
